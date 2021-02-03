@@ -6,6 +6,7 @@ const (
 	glass
 	papyrus
 	shield
+	coin
 )
 
 type wonder struct {
@@ -38,6 +39,7 @@ const (
 	scientific
 	commercial
 	military
+	guild
 )
 
 type guild_type int
@@ -60,7 +62,7 @@ const (
 	vase
 	barrel
 	mask
-	theater
+	temple
 	sun
 	drop
 	column
@@ -76,14 +78,18 @@ type building struct {
 	age int
 	name String
 	guild guild_type
-	cost map[material]int
-	required_link linking_symbol
-	production map[material]
+	cost map[resource]int
+	creation_link linking_symbol
+	production map[resource]int
+	trade []resource
+	science scientific_symbol
 	created_link linking_symbol
+	points int
 	color building_type
 	points int
 	visible bool
 	blocked_by []*building
+
 }
 
 type coin int

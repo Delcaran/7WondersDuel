@@ -82,6 +82,8 @@ type building struct {
 	created_link linking_symbol
 	color building_type
 	points int
+	visible bool
+	blocked_by []*building
 }
 
 type coin int
@@ -111,6 +113,8 @@ type player struct {
 	price map[resource]int
 }
 
-type game {
+type game struct {
 	progress_tokens []progress_token
+	buildable_buildings []*building
+	discarded_buildings []*building
 }

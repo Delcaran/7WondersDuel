@@ -6,214 +6,139 @@
 				"raw": [
 					{
 						"name": "Lumber Yard",
-						"trade": [],
 						"production": {
 							"wood": 1
-						},
-						"cost": {},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Logging Camp",
-						"trade": [],
 						"production": {
 							"wood": 1
 						},
 						"cost": {
 							"coin": 1
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Clay Pool",
-						"trade": [],
 						"production": {
 							"clay": 1
-						},
-						"cost": {},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Clay Pit",
-						"trade": [],
 						"production": {
 							"clay": 1
 						},
 						"cost": {
 							"coin": 1
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Quarry",
-						"trade": [],
 						"production": {
 							"stone": 1
-						},
-						"cost": {},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Stone Pit",
-						"trade": [],
 						"production": {
 							"stone": 1
 						},
 						"cost": {
 							"coin": 1
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					}
 				],
 				"manufactured": [
 					{
 						"name": "Glassworks",
-						"trade": [],
 						"production": {
 							"glass": 1
 						},
 						"cost": {
 							"coin": 1
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Press",
-						"trade": [],
 						"production": {
 							"papyrus": 1
 						},
 						"cost": {
 							"coin": 1
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					}
 				],
 				"military": [
 					{
 						"name": "Guard Tower",
-						"trade": [],
 						"production": {
 							"shield": 1
-						},
-						"cost": {},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Stable",
-						"trade": [],
 						"production": {
 							"shield": 1
 						},
 						"cost": {
 							"wood": 1
 						},
-						"creation_link": null,
-						"created_link": "stable",
-						"science": null,
-						"points": 0
+						"created_link": "stable"
 					},
 					{
 						"name": "Garrison",
-						"trade": [],
 						"production": {
 							"shield": 1
 						},
 						"cost": {
 							"clay": 1
 						},
-						"creation_link": null,
-						"created_link": "sword",
-						"science": null,
-						"points": 0
+						"created_link": "sword"
 					},
 					{
 						"name": "Palisade",
-						"trade": [],
 						"production": {
 							"shield": 1
 						},
 						"cost": {
 							"coin": 2
 						},
-						"creation_link": null,
-						"created_link": "castle",
-						"science": null,
-						"points": 0
+						"created_link": "castle"
 					}
 				],
 				"scientific": [
 					{
 						"name": "Workshop",
-						"trade": [],
-						"production": {},
 						"cost": {
 							"papyrus": 1
 						},
-						"creation_link": null,
-						"created_link": null,
 						"science": "pendulum",
 						"points": 1
 					},
 					{
 						"name": "Apothecary",
-						"trade": [],
-						"production": {},
 						"cost": {
 							"glass": 1
 						},
-						"creation_link": null,
-						"created_link": null,
 						"science": "wheel",
 						"points": 1
 					},
 					{
 						"name": "Scriptorium",
-						"trade": [],
-						"production": {},
 						"cost": {
 							"coin": 2
 						},
-						"creation_link": null,
 						"created_link": "book",
 						"science": "ink",
 						"points": 1
 					},
 					{
 						"name": "Pharmacist",
-						"trade": [],
-						"production": {},
 						"cost": {
 							"coin": 2
 						},
-						"creation_link": null,
 						"created_link": "gear",
 						"science": "mortar",
 						"points": 1
@@ -222,94 +147,296 @@
 				"commercial": [
 					{
 						"name": "Tavern",
-						"trade": [],
 						"production": {
 							"coin": 4
 						},
-						"cost": {},
-						"creation_link": null,
-						"created_link": "vase",
-						"science": null,
-						"points": 0
+						"created_link": "vase"
 					},
 					{
 						"name": "Stone reserve",
 						"trade": [
 							"stone"
 						],
-						"production": {},
 						"cost": {
 							"coin": 3
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Clay reserve",
 						"trade": [
 							"clay"
 						],
-						"production": {},
 						"cost": {
 							"coin": 3
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					},
 					{
 						"name": "Wood reserve",
 						"trade": [
 							"wood"
 						],
-						"production": {},
 						"cost": {
 							"coin": 3
-						},
-						"creation_link": null,
-						"created_link": null,
-						"science": null,
-						"points": 0
+						}
 					}
 				],
 				"civilian": [
 					{
 						"name": "Theater",
-						"trade": [],
-						"production": {},
-						"cost": {},
-						"creation_link": null,
 						"created_link": "mask",
-						"science": null,
 						"points": 3
 					},
 					{
 						"name": "Moon",
-						"trade": [],
-						"production": {},
-						"cost": {},
-						"creation_link": null,
 						"created_link": "moon",
-						"science": null,
 						"points": 3
 					},
 					{
 						"name": "Baths",
-						"trade": [],
-						"production": {},
 						"cost": {
 							"stone": 1
 						},
-						"creation_link": null,
 						"created_link": "drop",
-						"science": null,
 						"points": 3
 					}
+				]
+			}
+		},
+		{
+			"age": 2,
+			"buildings": {
+				"raw": [
+					{
+						"name": "Sawmill",
+						"production": {
+							"wood": 2
+						},
+						"cost": {
+							"coin": 2
+						}
+					},
+					{
+						"name": "Brickyard",
+						"production": {
+							"clay": 2
+						},
+						"cost": {
+							"coin": 2
+						}
+					},
+					{
+						"name": "Shelf Quarry",
+						"production": {
+							"stone": 2
+						},
+						"cost": {
+							"coin": 2
+						}
+					}
 				],
-				"guild": []
+				"manufactured": [
+					{
+						"name": "Glass Blower",
+						"production": {
+							"glass": 1
+						}
+					},
+					{
+						"name": "Drying Room",
+						"production": {
+							"papyrus": 1
+						}
+					}
+				],
+				"military": [
+					{
+						"name": "Walls",
+						"production": {
+							"shields": 2
+						},
+						"cost": {
+							"stone": 2
+						}
+					},
+					{
+						"name": "Horse Breeders",
+						"production": {
+							"shields": 1
+						},
+						"cost": {
+							"clay": 1,
+							"wood": 1
+						},
+						"creation_link": "stable"
+					},
+					{
+						"name": "Barracks",
+						"production": {
+							"shields": 1
+						},
+						"cost": {
+							"coin": 3
+						},
+						"creation_link": "sword"
+					},
+					{
+						"name": "Archery Range",
+						"production": {
+							"shields": 2
+						},
+						"cost": {
+							"stone": 1,
+							"wood": 1,
+							"papyrus": 1
+						},
+						"created_link": "archery"
+					},
+					{
+						"name": "Parade Ground",
+						"production": {
+							"shields": 2
+						},
+						"cost": {
+							"clay": 2,
+							"glass": 1
+						},
+						"created_link": "helm"
+					}
+				],
+				"scientific": [
+					{
+						"name": "Library",
+						"cost": {
+							"stone": 1,
+							"wood": 1,
+							"glass": 1
+						},
+						"creation_link": "book",
+						"science": "ink",
+						"points": 2
+					},
+					{
+						"name": "Dispensary",
+						"cost": {
+							"clay": 2,
+							"stone": 1
+						},
+						"creation_link": "gear",
+						"science": "mortar",
+						"points": 2
+					},
+					{
+						"name": "School",
+						"cost": {
+							"papyrus": 2,
+							"wood": 1
+						},
+						"created_link": "music",
+						"science": "wheel",
+						"points": 1
+					},
+					{
+						"name": "Laboratory",
+						"cost": {
+							"glass": 2,
+							"wood": 1
+						},
+						"created_link": "lamp",
+						"science": "pendulum",
+						"points": 1
+					}
+				],
+				"commercial": [
+					{
+						"name": "Forum",
+						"production": {
+							"choice": {
+								"glass": 1,
+								"papyrus": 1
+							}
+						},
+						"cost": {
+							"coin": 3,
+							"clay": 1
+						}
+					},
+					{
+						"name": "Caravanseray",
+						"production": {
+							"choice": {
+								"wood": 1,
+								"clay": 1,
+								"stone": 1
+							}
+						},
+						"cost": {
+							"coin": 2,
+							"glass": 1,
+							"papyrus": 1
+						}
+					},
+					{
+						"name": "Customs House",
+						"trade": ["papyrus", "glass"],
+						"cost": {
+							"coin": 4
+						}
+					},
+					{
+						"name": "Brewery",
+						"production": {
+							"coin": 6
+						},
+						"created_link": "barrel",
+						"points": 1
+					}
+				],
+				"civilian": [
+					{
+						"name": "Courthouse",
+						"cost": {
+							"wood": 2,
+							"glass": 1
+						},
+						"points": 5
+					},
+					{
+						"name": "Statue",
+						"cost": {
+							"clay": 2
+						},
+						"creation_link": "mask",
+						"created_link": "column",
+						"points": 4
+					},
+					{
+						"name": "Temple",
+						"cost": {
+							"wood": 1,
+							"papyrus": 1
+						},
+						"creation_link": "moon",
+						"created_link": "sun",
+						"points": 4
+					},
+					{
+						"name": "Acqueduct",
+						"cost": {
+							"stone": 3
+						},
+						"creation_link": "drop",
+						"points": 5
+					},
+					{
+						"name": "Rostrum",
+						"cost": {
+							"wood": 1,
+							"stone": 1
+						},
+						"created_link": "temple",
+						"points": 4
+					}
+				]
 			}
 		}
 	]

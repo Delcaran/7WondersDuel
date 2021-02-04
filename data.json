@@ -2,8 +2,7 @@
 	"buildings": [
 		{
 			"age": 1,
-			"buildings": {
-				"raw": [
+			"raw": [
 					{
 						"name": "Lumber Yard",
 						"production": {
@@ -200,12 +199,10 @@
 						"points": 3
 					}
 				]
-			}
 		},
 		{
 			"age": 2,
-			"buildings": {
-				"raw": [
+			"raw": [
 					{
 						"name": "Sawmill",
 						"production": {
@@ -437,12 +434,10 @@
 						"points": 4
 					}
 				]
-			}
 		},
 		{
 			"age": 3,
-			"buildings": {
-				"guild": [
+			"guild": [
 					{
 						"name": "Merchants Guild",
 						"bonus": {
@@ -767,6 +762,122 @@
 						"points": 5
 					}
 				]
+		}
+	],
+	"wonders": [
+		{
+			"name": "The Appian Way",
+			"cost": {},
+			"construction": {
+				"points": 3,
+				"turn": true,
+				"coins": 3,
+				"coins_removed": 3
+			}
+		},
+		{
+			"name": "Circus Maximus",
+			"cost": {},
+			"construction": {
+				"points": 3,
+				"shield": 1,
+				"discard": "manufactured"
+			}
+		},
+		{
+			"name": "The Colossus",
+			"cost": {},
+			"construction": {
+				"points": 3,
+				"shield": 2
+			}
+		},
+		{
+			"name": "The Great Library",
+			"cost": {},
+			"construction": {
+				"points": 4,
+				"tokens": {
+					"choose": 3,
+					"pick": 1
+				}
+			}
+		},
+		{
+			"name": "The Great Lighthouse",
+			"cost": {},
+			"construction": {
+				"production": {
+					"choice": {
+						"wood": 1,
+						"stone": 1,
+						"clay": 1
+					}
+				},
+				"points": 4
+			}
+		},
+		{
+			"name": "The Hanging Gardens",
+			"cost": {},
+			"construction": {
+				"points": 3,
+				"coin": 6,
+				"turn": true
+			}
+		},
+		{
+			"name": "The Mausoleum",
+			"cost": {},
+			"construction": {
+				"points": 2,
+				"building": true
+			}
+		},
+		{
+			"name": "Piraeus",
+			"cost": {},
+			"construction": {
+				"production": {
+					"choice": {
+						"glass": 1,
+						"papyrus": 1
+					}
+				},
+				"points": 2,
+				"turn": true
+			}
+		},
+		{
+			"name": "The Pyramids",
+			"cost": {},
+			"construction": {
+				"points": 9
+			}
+		},
+		{
+			"name": "The Sphinx",
+			"cost": {},
+			"construction": {
+				"points": 6,
+				"turn": true
+			}
+		},
+		{
+			"name": "The Statue of Zeus",
+			"cost": {},
+			"construction": {
+				"points": 3,
+				"shield": 1,
+				"discard": "raw"
+			}
+		},
+		{
+			"name": "The Temple of Artemis",
+			"cost": {},
+			"construction": {
+				"coin": 12,
+				"turn": true
 			}
 		}
 	]

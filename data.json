@@ -438,6 +438,336 @@
 					}
 				]
 			}
+		},
+		{
+			"age": 3,
+			"buildings": {
+				"guild": [
+					{
+						"name": "Merchants Guild",
+						"bonus": {
+							"best": ["merchant"],
+							"coin": 1,
+							"points": 1
+						},
+						"cost": {
+							"clay": 1,
+							"wood": 1,
+							"glass": 1,
+							"papyrus": 1
+						}
+					},
+					{
+						"name": "Shipowners Guild",
+						"bonus": {
+							"best": ["raw", "manufactured"],
+							"coin": 1,
+							"points": 1
+						},
+						"cost": {
+							"clay": 1,
+							"stone": 1,
+							"glass": 1,
+							"papyrus": 1
+						}
+					},
+					{
+						"name": "Builders Guild",
+						"bonus": {
+							"best": ["wonder"],
+							"points": 2
+						},
+						"cost": {
+							"clay": 1,
+							"wood": 1,
+							"glass": 1,
+							"stone": 2
+						}
+					},
+					{
+						"name": "magistrates Guild",
+						"bonus": {
+							"best": ["civilian"],
+							"coin": 1,
+							"points": 1
+						},
+						"cost": {
+							"clay": 1,
+							"wood": 2,
+							"papyrus": 1
+						}
+					},
+					{
+						"name": "Scientists Guild",
+						"bonus": {
+							"best": ["scientific"],
+							"coin": 1,
+							"points": 1
+						},
+						"cost": {
+							"clay": 2,
+							"wood": 2
+						}
+					},
+					{
+						"name": "Moneylenders Guild",
+						"bonus": {
+							"best": ["coin"],
+							"points": 1
+						},
+						"cost": {
+							"stone": 2,
+							"wood": 2
+						}
+					},
+					{
+						"name": "Tacticians Guild",
+						"bonus": {
+							"best": ["military"],
+							"coin": 1,
+							"points": 1
+						},
+						"cost": {
+							"stone": 2,
+							"clay": 1,
+							"papyrus": 1
+						}
+					}
+				],
+				"military": [
+					{
+						"name": "Arsenal",
+						"production": {
+							"shields": 3
+						},
+						"cost": {
+							"clay": 3,
+							"wood": 2
+						}
+					},
+					{
+						"name": "Pretorium",
+						"production": {
+							"shields": 3
+						},
+						"cost": {
+							"coin": 8
+						}
+					},
+					{
+						"name": "Fortifications",
+						"production": {
+							"shields": 2
+						},
+						"cost": {
+							"stone": 2,
+							"clay": 1,
+							"papyrus": 1
+
+						},
+						"creation_link": "castle"
+					},
+					{
+						"name": "Siege Workshop",
+						"production": {
+							"shields": 2
+						},
+						"cost": {
+							"wood": 3,
+							"glass": 1
+
+						},
+						"creation_link": "archery"
+					},
+					{
+						"name": "Circus",
+						"production": {
+							"shields": 2
+						},
+						"cost": {
+							"stone": 2,
+							"clay": 2
+
+						},
+						"creation_link": "helm"
+					}
+				],
+				"scientific": [
+					{
+						"name": "Academy",
+						"cost": {
+							"stone": 1,
+							"wood": 1,
+							"glass": 2
+						},
+						"science": "sundial",
+						"points": 3
+					},
+					{
+						"name": "Study",
+						"cost": {
+							"wood": 2,
+							"papyrus": 1,
+							"glass": 1
+						},
+						"science": "sundial",
+						"points": 3
+					},
+					{
+						"name": "University",
+						"cost": {
+							"clay": 1,
+							"papyrus": 1,
+							"glass": 1
+						},
+						"creation_link": "music",
+						"science": "astro",
+						"points": 2
+					},
+					{
+						"name": "Observatory",
+						"cost": {
+							"stone": 1,
+							"papyrus": 2
+						},
+						"creation_link": "lamp",
+						"science": "astro",
+						"points": 2
+					}
+				],
+				"commercial": [
+					{
+						"name": "Chamber of Commerce",
+						"production": {
+							"for_each": {
+								"building": "manufactured",
+								"coin": 3
+							}
+						},
+						"cost": {
+							"papyrus": 2
+						},
+						"points": 3
+					},
+					{
+						"name": "Port",
+						"production": {
+							"for_each": {
+								"building": "raw",
+								"coin": 2
+							}
+						},
+						"cost": {
+							"papyrus": 1,
+							"wood": 1,
+							"glass": 1
+						},
+						"points": 3
+					},
+					{
+						"name": "Armory",
+						"production": {
+							"for_each": {
+								"building": "military",
+								"coin": 1
+							}
+						},
+						"cost": {
+							"stone": 2,
+							"glass": 1
+						},
+						"points": 3
+					},
+					{
+						"name": "Lighthouse",
+						"production": {
+							"for_each": {
+								"building": "commercial",
+								"coin": 1
+							}
+						},
+						"cost": {
+							"clay": 2,
+							"glass": 1
+						},
+						"points": 3,
+						"creation_link": "vase"
+					},
+					{
+						"name": "Arena",
+						"production": {
+							"for_each": {
+								"building": "wonder",
+								"coin": 2
+							}
+						},
+						"cost": {
+							"clay": 1,
+							"stone": 1,
+							"wood": 1
+						},
+						"points": 3,
+						"creation_link": "barrel"
+					}
+				],
+				"civilian": [
+					{
+						"name": "Palace",
+						"cost": {
+							"wood": 1,
+							"glass": 2,
+							"clay": 1,
+							"stone": 1
+						},
+						"points": 7
+					},
+					{
+						"name": "Town Hall",
+						"cost": {
+							"wood": 2,
+							"stone": 3
+						},
+						"points": 7
+					},
+					{
+						"name": "Obelisk",
+						"cost": {
+							"glass": 1,
+							"stone": 2
+						},
+						"points": 5
+					},
+					{
+						"name": "Gardens",
+						"cost": {
+							"clay": 2,
+							"wood": 2
+						},
+						"creation_link": "column",
+						"points": 6
+					},
+					{
+						"name": "Pantheon",
+						"cost": {
+							"wood": 1,
+							"clay": 1,
+							"papyrus": 2
+						},
+						"creation_link": "sun",
+						"points": 6
+					},
+					{
+						"name": "Senate",
+						"cost": {
+							"stone": 1,
+							"clay": 2,
+							"papyrus": 1
+						},
+						"creation_link": "temple",
+						"points": 5
+					}
+				]
+			}
 		}
 	]
 }

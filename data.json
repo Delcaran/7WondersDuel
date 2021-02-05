@@ -867,10 +867,9 @@
 			},
 			"construction": {
 				"production": {
-					"choice": {
 						"glass": 1,
-						"papyrus": 1
-					}
+						"papyrus": 1,
+						"choice": true
 				},
 				"points": 2,
 				"turn": true

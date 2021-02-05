@@ -347,10 +347,9 @@
 					{
 						"name": "Forum",
 						"production": {
-							"choice": {
 								"glass": 1,
-								"papyrus": 1
-							}
+								"papyrus": 1,
+								"choice": true
 						},
 						"cost": {
 							"coin": 3,
@@ -360,11 +359,10 @@
 					{
 						"name": "Caravanseray",
 						"production": {
-							"choice": {
 								"wood": 1,
 								"clay": 1,
-								"stone": 1
-							}
+								"stone": 1,
+								"choice": true
 						},
 						"cost": {
 							"coin": 2,
@@ -767,17 +765,25 @@
 	"wonders": [
 		{
 			"name": "The Appian Way",
-			"cost": {},
+			"cost": {
+				"stone": 2,
+				"clay": 2,
+				"papyrus": 1
+			},
 			"construction": {
 				"points": 3,
 				"turn": true,
 				"coins": 3,
-				"coins_removed": 3
+				"coinsRemoved": 3
 			}
 		},
 		{
 			"name": "Circus Maximus",
-			"cost": {},
+			"cost": {
+				"wood": 1,
+				"glass": 1,
+				"stone": 2
+			},
 			"construction": {
 				"points": 3,
 				"shield": 1,
@@ -786,7 +792,10 @@
 		},
 		{
 			"name": "The Colossus",
-			"cost": {},
+			"cost": {
+				"glass": 1,
+				"clay": 3
+			},
 			"construction": {
 				"points": 3,
 				"shield": 2
@@ -794,7 +803,11 @@
 		},
 		{
 			"name": "The Great Library",
-			"cost": {},
+			"cost": {
+				"wood": 3,
+				"glass": 1,
+				"papyrus": 1
+			},
 			"construction": {
 				"points": 4,
 				"tokens": {
@@ -805,21 +818,28 @@
 		},
 		{
 			"name": "The Great Lighthouse",
-			"cost": {},
+			"cost": {
+				"wood": 1,
+				"stone": 1,
+				"papyrus": 2
+			},
 			"construction": {
 				"production": {
-					"choice": {
 						"wood": 1,
 						"stone": 1,
-						"clay": 1
-					}
+						"clay": 1,
+						"choice": true
 				},
 				"points": 4
 			}
 		},
 		{
 			"name": "The Hanging Gardens",
-			"cost": {},
+			"cost": {
+				"wood": 2,
+				"glass": 1,
+				"papyrus": 1
+			},
 			"construction": {
 				"points": 3,
 				"coin": 6,
@@ -828,7 +848,11 @@
 		},
 		{
 			"name": "The Mausoleum",
-			"cost": {},
+			"cost": {
+				"clay": 2,
+				"glass": 2,
+				"papyrus": 1
+			},
 			"construction": {
 				"points": 2,
 				"building": true
@@ -836,7 +860,11 @@
 		},
 		{
 			"name": "Piraeus",
-			"cost": {},
+			"cost": {
+				"wood": 2,
+				"stone": 1,
+				"clay": 1
+			},
 			"construction": {
 				"production": {
 					"choice": {
@@ -850,14 +878,21 @@
 		},
 		{
 			"name": "The Pyramids",
-			"cost": {},
+			"cost": {
+				"stone": 3,
+				"papyrus": 1
+			},
 			"construction": {
 				"points": 9
 			}
 		},
 		{
 			"name": "The Sphinx",
-			"cost": {},
+			"cost": {
+				"glass": 2,
+				"clay": 1,
+				"stone": 1
+			},
 			"construction": {
 				"points": 6,
 				"turn": true
@@ -865,7 +900,12 @@
 		},
 		{
 			"name": "The Statue of Zeus",
-			"cost": {},
+			"cost": {
+				"wood": 1,
+				"clay": 1,
+				"stone": 1,
+				"papyrus": 2
+			},
 			"construction": {
 				"points": 3,
 				"shield": 1,
@@ -874,7 +914,12 @@
 		},
 		{
 			"name": "The Temple of Artemis",
-			"cost": {},
+			"cost": {
+				"papyrus": 1,
+				"glass": 1,
+				"wood": 1,
+				"stone": 1
+			},
 			"construction": {
 				"coin": 12,
 				"turn": true

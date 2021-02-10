@@ -5,13 +5,10 @@ import "fmt"
 func main() {
     data, err := loadGameContent()
     if err != nil {
-        fmt.Printf("failed to load game data, error: %v", err)
-        return
+        fmt.Println("Error in loading game content")
     }
-    
-    // Print
     for _, wonder := range data.Wonders {
         wonder.print()
-        fmt.Printf("\n")
+        fmt.Println()
     }
 }

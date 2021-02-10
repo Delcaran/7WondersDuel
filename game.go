@@ -11,6 +11,11 @@ type tokenChoice struct {
     Choose int
     Pick int
 }
+func (t tokenChoice) printContent() {
+	if(t.Choose > 0 && t.Pick > 0 && t.Pick < t.Choose) {
+		fmt.Printf("\tExtract %d tokens and pick %d\n", t.Choose, t.Pick)
+	}
+}
 
 type importData struct {
     Wonders []wonder

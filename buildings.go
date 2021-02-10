@@ -10,7 +10,7 @@ type wonder struct {
     TokenChoice tokenChoice
 }
 func (w wonder) print() {
-    fmt.Printf("\"%s\" \n", w.Name)
+    fmt.Printf("\"%s\"\n", w.Name)
     w.Cost.printContent()
     w.Construction.printContent()
 }

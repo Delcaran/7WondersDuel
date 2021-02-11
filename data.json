@@ -1027,52 +1027,52 @@
 	],
 	"tokens": [
 		{
-			"_id": "agriculture",
+			"id": "agriculture",
 			"name": "Agriculture",
 			"description": "Immediately take 6 coins from the Bank.The token is worth 4 victory points."
 		},
 		{
-			"_id": "architecture",
+			"id": "architecture",
 			"name": "Architecture",
 			"description": "Any future Wonders built by you will cost 2 fewer resources. At each construction, you are free to choose which resources this rebate affects."
 		},
 		{
-			"_id": "economy",
+			"id": "economy",
 			"name": "Economy",
 			"description": "You gain the money spent by your opponent when they trade for resources."
 		},
 		{
-			"_id": "law",
+			"id": "law",
 			"name": "Law",
 			"description": "This token is worth a scientific symbol."
 		},
 		{
-			"_id": "masonry",
+			"id": "masonry",
 			"name": "Masonry",
 			"description": "Any future blue cards constructed by you will cost 2 fewer resources. At each construction, you are free to choose which resources this rebate affects."
 		},
 		{
-			"_id": "mathematics",
+			"id": "mathematics",
 			"name": "Mathematics",
 			"description": "At the end of the game, score 3 victory points for each Progress token in your possession (including itself)."
 		},
 		{
-			"_id": "philosophy",
+			"id": "philosophy",
 			"name": "Philosophy",
 			"description": "The token is worth 7 victory points."
 		},
 		{
-			"_id": "strategy",
+			"id": "strategy",
 			"name": "Strategy",
 			"description": "Once this token enters play, your new military Buildings (red cards) will benefit from 1 extra Shield. "
 		},
 		{
-			"_id": "theology",
+			"id": "theology",
 			"name": "Theology",
 			"description": "All future Wonders constructed by you are all treated as though they have the “Play Again” effect."
 		},
 		{
-			"_id": "urbanism",
+			"id": "urbanism",
 			"name": "Urbanism",
 			"description": "Immediately take 6 coins from the Bank.Each time you construct a Building for free through linking (free construction condition, chain), you gain 4 coins."
 		}

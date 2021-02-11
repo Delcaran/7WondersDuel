@@ -34,8 +34,69 @@ type player struct {
 	Guild         []building
 }
 
+type position struct {
+	X int // 0 is left
+	Y int // 0 is top
+}
+
+type card struct {
+	Building building
+	Visible  bool
+	Position position
+}
+
+type board struct {
+	Cards      [][]card // [y][x]
+	XMin, XMax int
+	YMin, YMax int
+}
+
+func (b *board) cardBlocks(c *card) [2]*card {
+	left := c.Position.X - 1
+	right := c.Position.X + 1
+	line := c.Position.Y - 1
+
+	var blocked [2]*card
+
+	if line >= b.YMin && line <= b.YMax {
+		if left >= b.XMin && left <= b.XMax {
+			if b.Cards[line][left].Building.ID != "" {
+				blocked[0] = &b.Cards[line][left]
+			}
+		}
+		if right >= b.XMin && right <= b.XMax {
+			if b.Cards[line][right].Building.ID != "" {
+				blocked[1] = &b.Cards[line][right]
+			}
+		}
+	}
+	return blocked
+}
+func (b *board) cardBlocked(c *card) bool {
+	left := c.Position.X - 1
+	right := c.Position.X + 1
+	line := c.Position.Y + 1
+
+	blocked := false
+
+	if line >= b.YMin && line <= b.YMax {
+		if left >= b.XMin && left <= b.XMax {
+			if b.Cards[line][left].Building.ID != "" {
+				blocked = true
+			}
+		}
+		if right >= b.XMin && right <= b.XMax {
+			if b.Cards[line][right].Building.ID != "" {
+				blocked = true
+			}
+		}
+	}
+	return blocked
+}
+
 type game struct {
 	CurrentPlayer int
+	Board         board
 }
 
 func loadGameContent() (importData, error) {

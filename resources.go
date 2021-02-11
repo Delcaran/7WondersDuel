@@ -38,3 +38,9 @@ type construction struct {
 	Production   production
 	ForEach      forEach
 }
+
+type token struct {
+	ID          string
+	Name        string
+	Description string
+}

@@ -1,6 +1,7 @@
 package main
 
 type wonder struct {
+	ID           string
 	Name         string
 	Production   production
 	Construction construction
@@ -15,6 +16,7 @@ type bonus struct {
 }
 
 type building struct {
+	ID           string
 	Name         string
 	Cost         cost
 	Production   production

@@ -15,6 +15,27 @@ type tokenChoice struct {
 type importData struct {
 	Wonders []wonder
 	Decks   []deck
+	Tokens  []token
+	Coins   resource
+}
+
+type player struct {
+	Points        int
+	Coins         resource
+	BonusShields  resource // in addition of those from buildings
+	MilitaryPower int
+	Wonders       []wonder
+	Raw           []building
+	Manufactured  []building
+	Military      []building
+	Scientific    []building
+	Civilian      []building
+	Commercial    []building
+	Guild         []building
+}
+
+type game struct {
+	CurrentPlayer int
 }
 
 func loadGameContent() (importData, error) {
@@ -38,4 +59,12 @@ func loadGameContent() (importData, error) {
 		return data, err
 	}
 	return data, nil
+}
+
+func deployBoard() {
+	// boxContents, err := loadGameContent()
+	// if err != nil {
+	// 	fmt.Printf("failed load box content, error: %v", err)
+	// 	return
+	// }
 }

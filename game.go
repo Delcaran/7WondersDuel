@@ -149,10 +149,9 @@ func loadBoardLayout(age int, data *importData) board {
 	blankLines := 0
 	line := -1 // will be incremented before processing each line
 	var ageDeck *deck
-	for _, deck := range data.Decks {
-		if deck.Age == age {
-			//fmt.Printf("Using age %d\n", deck.Age)
-			ageDeck = &deck
+	for _, fulldeck := range data.Decks {
+		if fulldeck.Age == age {
+			ageDeck = &fulldeck
 			break
 		}
 	}
@@ -160,7 +159,6 @@ func loadBoardLayout(age int, data *importData) board {
 	var usedCards []int
 
 	var newBoard board
-	newBoard.Cards = make([][]card, 10) // 10 dovrebbe bastare
 	for scanner.Scan() {
 		line++
 		text := scanner.Text()
@@ -199,7 +197,7 @@ func loadBoardLayout(age int, data *importData) board {
 						//fmt.Printf("%s in ( y : %d , x : %d)\n", newLine[c].Building.ID, newLine[c].Position.Y, newLine[c].Position.X)
 					}
 				}
-				newBoard.Cards[line] = newLine
+				newBoard.Cards = append(newBoard.Cards, newLine)
 			}
 		}
 	}

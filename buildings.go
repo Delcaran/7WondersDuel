@@ -18,6 +18,7 @@ type bonus struct {
 type building struct {
 	ID           string
 	Name         string
+	Type         string
 	Cost         cost
 	Production   production
 	Costruction  construction
@@ -29,12 +30,6 @@ type building struct {
 }
 
 type deck struct {
-	Age          int
-	Raw          []building
-	Manufactured []building
-	Military     []building
-	Scientific   []building
-	Civilian     []building
-	Commercial   []building
-	Guild        []building
+	Age       int
+	Buildings []building
 }

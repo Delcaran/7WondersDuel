@@ -28,4 +28,14 @@ These features may never be implemented:
 - [ ] Internet serverless game
 - [ ] Single player with adversarial A.I.
 
+## Grid implentation 
+
+Ages card layout is described in ages.dat as following:
+- a space means "no card"
+- O means visible card
+- X means hidden card
+- All "card" lines must have the same number of chars
+- Blank line separates ages
+
+This allows for easy layouting and maybe future customization.
 

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 )
 
 type tokenChoice struct {
@@ -14,11 +16,30 @@ type tokenChoice struct {
 	Pick   int
 }
 
-type importData struct {
+type gameContent struct {
 	Wonders []wonder
 	Decks   []deck
 	Tokens  []token
 	Coins   resource
+}
+
+func (d *gameContent) prepareContent() {
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	// Shuffle wonders
+	rand.Shuffle(len(d.Wonders), func(i, j int) {
+		d.Wonders[i], d.Wonders[j] = d.Wonders[j], d.Wonders[i]
+	})
+
+	// Shuffle tokens
+	rand.Shuffle(len(d.Tokens), func(i, j int) {
+		d.Tokens[i], d.Tokens[j] = d.Tokens[j], d.Tokens[i]
+	})
+
+	// Prepare buildings
+	for _, deck := range d.Decks {
+		deck.prepareBuildings()
+	}
 }
 
 type player struct {
@@ -101,8 +122,13 @@ func (b *board) debugPrint() {
 			if x != 0 {
 				fmt.Printf(" ")
 			}
-			if b.Cards[y][x].Building != nil {
-				fmt.Printf("%s", b.Cards[y][x].Building.ID)
+			card := b.Cards[y][x]
+			if card.Building != nil {
+				format := "%s"
+				if !card.Visible {
+					format = "?%s?"
+				}
+				fmt.Printf(format, card.Building.ID)
 			} else {
 				fmt.Printf("*")
 			}
@@ -112,12 +138,14 @@ func (b *board) debugPrint() {
 }
 
 type game struct {
-	CurrentPlayer int
-	Board         board
+	CurrentPlayer   int
+	Board           board
+	Tokens          []token
+	DiscardedTokens []token
 }
 
-func loadGameContent() (importData, error) {
-	data := importData{}
+func loadGameContent() (gameContent, error) {
+	data := gameContent{}
 	filename := "conf/data.json"
 	jsonFile, err := os.Open(filename)
 	defer jsonFile.Close()
@@ -134,15 +162,12 @@ func loadGameContent() (importData, error) {
 		log.Fatal(err)
 	}
 
-	// Now prepare decks
-	for _, deck := range data.Decks {
-		deck.prepareBuildings()
-	}
+	data.prepareContent()
 
 	return data, nil
 }
 
-func loadBoardLayout(age int, data *importData) board {
+func loadBoardLayout(age int, data *gameContent) board {
 	datAges, err := os.Open("conf/ages.dat")
 	defer datAges.Close()
 	if err != nil {
@@ -200,6 +225,9 @@ func deployBoard() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	board := loadBoardLayout(1, &boxContents)
-	board.debugPrint()
+	for age := 1; age <= 3; age++ {
+		board := loadBoardLayout(age, &boxContents)
+		board.debugPrint()
+		fmt.Println()
+	}
 }

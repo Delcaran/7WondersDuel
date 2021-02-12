@@ -103,12 +103,12 @@ func (b *board) cardBlocked(c *card) bool {
 	blocked := false
 
 	if line >= 0 && line <= b.YMax {
-		if left >= 0 && left <= b.XMax {
+		if left >= 0 && left < b.XMax {
 			if b.Cards[line][left].Building != nil {
 				blocked = true
 			}
 		}
-		if right >= 0 && right <= b.XMax {
+		if right >= 0 && right < b.XMax {
 			if b.Cards[line][right].Building != nil {
 				blocked = true
 			}
@@ -127,6 +127,9 @@ func (b *board) debugPrint() {
 				format := "%s"
 				if !card.Visible {
 					format = "?%s?"
+				}
+				if b.cardBlocked(&card) {
+					format = fmt.Sprintf("#%s#", format)
 				}
 				fmt.Printf(format, card.Building.ID)
 			} else {

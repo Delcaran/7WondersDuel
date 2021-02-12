@@ -97,7 +97,19 @@ func (b *board) cardBlocked(c *card) bool {
 	return blocked
 }
 func (b *board) print() {
-	fmt.Printf("Board has %d lines\n", b.YMax)
+	for y := 0; y <= b.YMax; y++ {
+		for x := 0; x < b.XMax; x++ {
+			if x != 0 {
+				fmt.Printf(" ")
+			}
+			if b.Cards[y][x].Building != nil {
+				fmt.Printf("%s", b.Cards[y][x].Building.ID)
+			} else {
+				fmt.Printf("*")
+			}
+		}
+		fmt.Printf("\n")
+	}
 }
 
 type game struct {
@@ -139,7 +151,9 @@ func loadBoardLayout(age int, data *importData) board {
 	var ageDeck *deck
 	for _, deck := range data.Decks {
 		if deck.Age == age {
+			//fmt.Printf("Using age %d\n", deck.Age)
 			ageDeck = &deck
+			break
 		}
 	}
 	deckCards := len(ageDeck.Buildings)
@@ -177,10 +191,12 @@ func loadBoardLayout(age int, data *importData) board {
 								newRand = rand.Intn(deckCards)
 							}
 						}
+						usedCards = append(usedCards, newRand)
 						newLine[c].Building = &ageDeck.Buildings[newRand]
 						newLine[c].Position.X = c
 						newLine[c].Position.Y = line
-						newLine[c].Visible = (text[c] == 'O')
+						newLine[c].Visible = (text[c] == 'O') // uppercase letter o
+						//fmt.Printf("%s in ( y : %d , x : %d)\n", newLine[c].Building.ID, newLine[c].Position.Y, newLine[c].Position.X)
 					}
 				}
 				newBoard.Cards[line] = newLine

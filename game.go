@@ -155,8 +155,10 @@ func loadBoardLayout(age int, data *importData) board {
 			break
 		}
 	}
-	deckCards := len(ageDeck.Buildings)
-	var usedCards []int
+	rand.Shuffle(len(ageDeck.Buildings), func(i, j int) {
+		ageDeck.Buildings[i], ageDeck.Buildings[j] = ageDeck.Buildings[j], ageDeck.Buildings[i]
+	})
+	lastCard := 0
 
 	var newBoard board
 	for scanner.Scan() {
@@ -175,26 +177,12 @@ func loadBoardLayout(age int, data *importData) board {
 				for c := 0; c < lenght; c++ {
 					newLine[c].Building = nil
 					if text[c] != ' ' {
-						newRand := rand.Intn(deckCards)
-						for {
-							randOk := true
-							for _, n := range usedCards {
-								if n == newRand {
-									randOk = false
-								}
-							}
-							if randOk {
-								break
-							} else {
-								newRand = rand.Intn(deckCards)
-							}
-						}
-						usedCards = append(usedCards, newRand)
-						newLine[c].Building = &ageDeck.Buildings[newRand]
+						newLine[c].Building = &ageDeck.Buildings[lastCard]
 						newLine[c].Position.X = c
 						newLine[c].Position.Y = line
 						newLine[c].Visible = (text[c] == 'O') // uppercase letter o
 						//fmt.Printf("%s in ( y : %d , x : %d)\n", newLine[c].Building.ID, newLine[c].Position.Y, newLine[c].Position.X)
+						lastCard++
 					}
 				}
 				newBoard.Cards = append(newBoard.Cards, newLine)

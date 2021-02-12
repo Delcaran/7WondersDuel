@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
-	"time"
 )
 
 type tokenChoice struct {
@@ -97,7 +95,7 @@ func (b *board) cardBlocked(c *card) bool {
 	}
 	return blocked
 }
-func (b *board) print() {
+func (b *board) debugPrint() {
 	for y := 0; y <= b.YMax; y++ {
 		for x := 0; x < b.XMax; x++ {
 			if x != 0 {
@@ -135,11 +133,16 @@ func loadGameContent() (importData, error) {
 	if err := json.Unmarshal(jsonData, &data); err != nil {
 		log.Fatal(err)
 	}
+
+	// Now prepare decks
+	for _, deck := range data.Decks {
+		deck.prepareBuildings()
+	}
+
 	return data, nil
 }
 
 func loadBoardLayout(age int, data *importData) board {
-	rand.Seed(time.Now().UTC().UnixNano())
 	datAges, err := os.Open("conf/ages.dat")
 	defer datAges.Close()
 	if err != nil {
@@ -155,9 +158,6 @@ func loadBoardLayout(age int, data *importData) board {
 			break
 		}
 	}
-	rand.Shuffle(len(ageDeck.Buildings), func(i, j int) {
-		ageDeck.Buildings[i], ageDeck.Buildings[j] = ageDeck.Buildings[j], ageDeck.Buildings[i]
-	})
 	lastCard := 0
 
 	var newBoard board
@@ -201,5 +201,5 @@ func deployBoard() {
 		log.Fatal(err)
 	}
 	board := loadBoardLayout(1, &boxContents)
-	board.print()
+	board.debugPrint()
 }

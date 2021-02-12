@@ -3,11 +3,11 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
-	"time"
 )
 
 type tokenChoice struct {
@@ -96,6 +96,9 @@ func (b *board) cardBlocked(c *card) bool {
 	}
 	return blocked
 }
+func (b *board) print() {
+	fmt.Printf("Board has %d lines\n", b.YMax)
+}
 
 type game struct {
 	CurrentPlayer int
@@ -123,7 +126,8 @@ func loadGameContent() (importData, error) {
 }
 
 func loadBoardLayout(age int, data *importData) board {
-	rand.Seed(time.Now())
+	//rand.Seed(time.Now())
+	rand.Seed(13234)
 	datAges, err := os.Open("conf/ages.dat")
 	defer datAges.Close()
 	if err != nil {
@@ -142,6 +146,7 @@ func loadBoardLayout(age int, data *importData) board {
 	var usedCards []int
 
 	var newBoard board
+	newBoard.Cards = make([][]card, 10) // 10 dovrebbe bastare
 	for scanner.Scan() {
 		line++
 		text := scanner.Text()
@@ -154,8 +159,9 @@ func loadBoardLayout(age int, data *importData) board {
 				// this is the right layout for the requested age
 				newBoard.YMax = line
 				newBoard.XMax = lenght // every line in layout MUST have the same number of chars
+				newLine := make([]card, newBoard.XMax)
 				for c := 0; c < lenght; c++ {
-					newBoard.Cards[line][c].Building = nil
+					newLine[c].Building = nil
 					if text[c] != ' ' {
 						newRand := rand.Intn(deckCards)
 						for {
@@ -171,12 +177,13 @@ func loadBoardLayout(age int, data *importData) board {
 								newRand = rand.Intn(deckCards)
 							}
 						}
-						newBoard.Cards[line][c].Building = &ageDeck.Buildings[newRand]
-						newBoard.Cards[line][c].Position.X = c
-						newBoard.Cards[line][c].Position.Y = line
-						newBoard.Cards[line][c].Visible = (text[c] == 'O')
+						newLine[c].Building = &ageDeck.Buildings[newRand]
+						newLine[c].Position.X = c
+						newLine[c].Position.Y = line
+						newLine[c].Visible = (text[c] == 'O')
 					}
 				}
+				newBoard.Cards[line] = newLine
 			}
 		}
 	}
@@ -187,9 +194,10 @@ func loadBoardLayout(age int, data *importData) board {
 }
 
 func deployBoard() {
-	// boxContents, err := loadGameContent()
-	// if err != nil {
-	// 	fmt.Printf("failed load box content, error: %v", err)
-	// 	return
-	// }
+	boxContents, err := loadGameContent()
+	if err != nil {
+		log.Fatal(err)
+	}
+	board := loadBoardLayout(1, &boxContents)
+	board.print()
 }

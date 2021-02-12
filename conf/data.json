@@ -218,8 +218,8 @@
 					"points": 3
 				},
 				{
-					"type": "altar",
-					"id": "moon",
+					"type": "civilian",
+					"id": "altar",
 					"name": "Altar",
 					"created_link": "moon",
 					"points": 3

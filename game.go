@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"time"
 )
 
 type tokenChoice struct {
@@ -138,8 +139,7 @@ func loadGameContent() (importData, error) {
 }
 
 func loadBoardLayout(age int, data *importData) board {
-	//rand.Seed(time.Now())
-	rand.Seed(13234)
+	rand.Seed(time.Now().UTC().UnixNano())
 	datAges, err := os.Open("conf/ages.dat")
 	defer datAges.Close()
 	if err != nil {

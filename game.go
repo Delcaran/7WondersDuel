@@ -48,13 +48,133 @@ type player struct {
 	BonusShields  resource // in addition of those from buildings
 	MilitaryPower int
 	Wonders       []wonder
-	Raw           []building
-	Manufactured  []building
-	Military      []building
-	Scientific    []building
-	Civilian      []building
-	Commercial    []building
-	Guild         []building
+	Buildings     []building
+	Links         []string
+}
+
+func (p *player) availableResources() (production, []*production) {
+	var fixed production
+	var dynamic []*production
+	genericBuildings := []genericBuilding{}
+	for _, b := range p.Buildings {
+		genericBuildings = append(genericBuildings, &b)
+	}
+	for _, w := range p.Wonders {
+		genericBuildings = append(genericBuildings, &w)
+	}
+	for _, g := range genericBuildings {
+		in := g.getProduction()
+		if in.Choice {
+			// TODO
+		} else {
+			fixed.Wood += in.Wood
+			fixed.Clay += in.Clay
+			fixed.Stone += in.Stone
+			fixed.Glass += in.Glass
+			fixed.Papyrus += in.Papyrus
+		}
+	}
+	return fixed, dynamic
+}
+
+func (p *player) calculatePrices(opponent *player) cost {
+	var Prices cost
+	opponentFixedProduction, _ := opponent.availableResources() // only raw and manufactured are fixed
+	Prices.Wood = 2 + opponentFixedProduction.Wood
+	Prices.Clay = 2 + opponentFixedProduction.Clay
+	Prices.Stone = 2 + opponentFixedProduction.Stone
+	Prices.Glass = 2 + opponentFixedProduction.Glass
+	Prices.Papyrus = 2 + opponentFixedProduction.Papyrus
+	for _, b := range p.Buildings {
+		for _, t := range b.Trade {
+			if t == "wood" {
+				Prices.Wood = 1
+			}
+			if t == "clay" {
+				Prices.Clay = 1
+			}
+			if t == "stone" {
+				Prices.Stone = 1
+			}
+			if t == "glass" {
+				Prices.Glass = 1
+			}
+			if t == "papyrus" {
+				Prices.Papyrus = 1
+			}
+		}
+	}
+	return Prices
+}
+
+func (p *player) calculateSellIncome() resource {
+	var Coins resource
+	Coins = 2
+	for _, b := range p.Buildings {
+		if b.Type == "commercial" {
+			Coins++
+		}
+	}
+	return Coins
+}
+
+func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool, resource) {
+	var MissingResources cost
+	// check links for free building
+	for _, l := range p.Links {
+		if l == b.CreationLink {
+			return true, true, 0 // Buyable?, Free?, Coins
+		}
+	}
+	// check impossible to build building (not enough coins)
+	if b.Cost.Coins > p.Coins {
+		return false, false, b.Cost.Coins - p.Coins // Buyable?, Free?, Coins
+	}
+	// check available resources and prices for missing ones
+	Buyable := true
+	FixedProduction, DynamicProduction := p.availableResources()
+	MissingResources = b.Cost
+	MissingResources.Coins -= p.Coins
+	MissingResources.Wood -= FixedProduction.Wood
+	MissingResources.Clay -= FixedProduction.Clay
+	MissingResources.Stone -= FixedProduction.Stone
+	MissingResources.Papyrus -= FixedProduction.Papyrus
+	MissingResources.Glass -= FixedProduction.Glass
+
+	// Is Fixed Production enough?
+	Buyable = Buyable && MissingResources.Wood <= 0
+	Buyable = Buyable && MissingResources.Clay <= 0
+	Buyable = Buyable && MissingResources.Stone <= 0
+	Buyable = Buyable && MissingResources.Papyrus <= 0
+	Buyable = Buyable && MissingResources.Glass <= 0
+	if Buyable {
+		return Buyable, false, MissingResources.Coins // Buyable?, Free?, Coins
+	}
+	// Not enough... calculate with Dynamic Production
+	for _, o := range DynamicProduction {
+		Buyable = true
+		tmp := MissingResources
+		if o.Wood > 0 {
+			tmp.Wood -= o.Wood
+		}
+
+		tmp.Clay -= o.Clay
+		tmp.Stone -= o.Stone
+		tmp.Papyrus -= o.Papyrus
+		tmp.Glass -= o.Glass
+
+		Buyable = Buyable && tmp.Clay <= 0
+		Buyable = Buyable && tmp.Stone <= 0
+		Buyable = Buyable && tmp.Papyrus <= 0
+		Buyable = Buyable && tmp.Glass <= 0
+		if Buyable {
+			return Buyable, false, tmp.Coins // Buyable?, Free?, Coins
+		}
+	}
+	// Still not enough: look into trading ...
+	Prices := p.calculatePrices(opponent)
+
+	return false, false, MissingResources // Buyable?, Free?, Coins
 }
 
 type position struct {

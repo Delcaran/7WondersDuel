@@ -14,6 +14,16 @@ type wonder struct {
 	TokenChoice  tokenChoice
 }
 
+func (b *wonder) getProduction() *production {
+	return &b.Production
+}
+func (b *wonder) getConstruction() *construction {
+	return &b.Construction
+}
+func (b *wonder) getCost() *cost {
+	return &b.Cost
+}
+
 type bonus struct {
 	Best   []string
 	Coin   resource
@@ -26,12 +36,29 @@ type building struct {
 	Type         string
 	Cost         cost
 	Production   production
-	Costruction  construction
+	Construction construction
 	Bonus        bonus
+	Trade        []string
 	CreationLink string
 	CreatedLink  string
 	Points       int
 	Science      string
+}
+
+func (b *building) getProduction() *production {
+	return &b.Production
+}
+func (b *building) getConstruction() *construction {
+	return &b.Construction
+}
+func (b *building) getCost() *cost {
+	return &b.Cost
+}
+
+type genericBuilding interface {
+	getProduction() *production
+	getConstruction() *construction
+	getCost() *cost
 }
 
 type deck struct {

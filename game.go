@@ -52,9 +52,44 @@ type player struct {
 	Links         []string
 }
 
-func (p *player) availableResources() (production, []*production) {
+func calculateDynamicProduction(input []*production, inputIndex int, output []production, tmp production) {
+	if inputIndex < len(input) {
+		in := input[inputIndex]
+		if in.Wood > 0 {
+			newTmp := tmp
+			newTmp.Wood += in.Wood
+			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+		}
+		if in.Clay > 0 {
+			newTmp := tmp
+			newTmp.Clay += in.Clay
+			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+		}
+		if in.Stone > 0 {
+			newTmp := tmp
+			newTmp.Stone += in.Stone
+			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+		}
+		if in.Papyrus > 0 {
+			newTmp := tmp
+			newTmp.Papyrus += in.Papyrus
+			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+		}
+		if in.Glass > 0 {
+			newTmp := tmp
+			newTmp.Glass += in.Glass
+			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+		}
+	} else {
+		// fine del ramo
+		output = append(output, tmp)
+		return
+	}
+}
+
+func (p *player) availableResources() (production, []production) {
 	var fixed production
-	var dynamic []*production
+	var toBeAnalized []*production
 	genericBuildings := []genericBuilding{}
 	for _, b := range p.Buildings {
 		genericBuildings = append(genericBuildings, &b)
@@ -65,7 +100,7 @@ func (p *player) availableResources() (production, []*production) {
 	for _, g := range genericBuildings {
 		in := g.getProduction()
 		if in.Choice {
-			// TODO
+			toBeAnalized = append(toBeAnalized, in)
 		} else {
 			fixed.Wood += in.Wood
 			fixed.Clay += in.Clay
@@ -74,6 +109,10 @@ func (p *player) availableResources() (production, []*production) {
 			fixed.Papyrus += in.Papyrus
 		}
 	}
+	// Create all combos of dynamic resources
+	var dynamic []production
+	var tmp production
+	calculateDynamicProduction(toBeAnalized, 0, dynamic, tmp)
 	return fixed, dynamic
 }
 
@@ -151,30 +190,14 @@ func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool,
 		return Buyable, false, MissingResources.Coins // Buyable?, Free?, Coins
 	}
 	// Not enough... calculate with Dynamic Production
+	// TODO
 	for _, o := range DynamicProduction {
-		Buyable = true
-		tmp := MissingResources
-		if o.Wood > 0 {
-			tmp.Wood -= o.Wood
-		}
-
-		tmp.Clay -= o.Clay
-		tmp.Stone -= o.Stone
-		tmp.Papyrus -= o.Papyrus
-		tmp.Glass -= o.Glass
-
-		Buyable = Buyable && tmp.Clay <= 0
-		Buyable = Buyable && tmp.Stone <= 0
-		Buyable = Buyable && tmp.Papyrus <= 0
-		Buyable = Buyable && tmp.Glass <= 0
-		if Buyable {
-			return Buyable, false, tmp.Coins // Buyable?, Free?, Coins
-		}
+		fmt.Println(o.Wood)
 	}
 	// Still not enough: look into trading ...
-	Prices := p.calculatePrices(opponent)
+	// TODO Prices := p.calculatePrices(opponent)
 
-	return false, false, MissingResources // Buyable?, Free?, Coins
+	return false, false, MissingResources.Coins // Buyable?, Free?, Coins
 }
 
 type position struct {

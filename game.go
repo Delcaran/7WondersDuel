@@ -173,7 +173,6 @@ func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool,
 	Buyable := true
 	FixedProduction, DynamicProduction := p.availableResources()
 	MissingResources = b.Cost
-	MissingResources.Coins -= p.Coins
 	MissingResources.Wood -= FixedProduction.Wood
 	MissingResources.Clay -= FixedProduction.Clay
 	MissingResources.Stone -= FixedProduction.Stone
@@ -187,15 +186,45 @@ func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool,
 	Buyable = Buyable && MissingResources.Papyrus <= 0
 	Buyable = Buyable && MissingResources.Glass <= 0
 	if Buyable {
-		return Buyable, false, MissingResources.Coins // Buyable?, Free?, Coins
+		return Buyable, false, b.Cost.Coins // Buyable?, Free?, Coins
 	}
 	// Not enough... calculate with Dynamic Production
-	// TODO
 	for _, o := range DynamicProduction {
-		fmt.Println(o.Wood)
+		Buyable := true
+		Buyable = Buyable && (MissingResources.Wood - o.Wood) <= 0
+		Buyable = Buyable && (MissingResources.Clay - o.Clay) <= 0
+		Buyable = Buyable && (MissingResources.Stone - o.Stone) <= 0
+		Buyable = Buyable && (MissingResources.Papyrus - o.Papyrus) <= 0
+		Buyable = Buyable && (MissingResources.Glass - o.Glass) <= 0
+		if Buyable {
+			return Buyable, false, b.Cost.Coins // Buyable?, Free?, Coins
+		}
 	}
 	// Still not enough: look into trading ...
-	// TODO Prices := p.calculatePrices(opponent)
+	Prices := p.calculatePrices(opponent)
+	MissingResources.Coins += MissingResources.Wood * Prices.Wood
+	MissingResources.Coins += MissingResources.Clay * Prices.Clay
+	MissingResources.Coins += MissingResources.Stone * Prices.Stone
+	MissingResources.Coins += MissingResources.Papyrus * Prices.Papyrus
+	MissingResources.Coins += MissingResources.Glass * Prices.Glass
+	// Ora MissingResources.Coins contiene quante monete mi servono per comprare tutto
+	// Detraggo da questo costo le risorse dinamiche
+	minCoins := MissingResources.Coins
+	for _, o := range DynamicProduction {
+		tmp := MissionResources.Coins
+		tmp -= o.Wood * Prices.Wood
+		tmp -= o.Clay * Prices.Clay
+		tmp -= o.Stone * Prices.Stone
+		tmp -= o.Papyrus * Prices.Papyrus
+		tmp -= o.Glass * Prices.Glass
+		if tmp < minCoins {
+			minCoins = tmp
+		}
+	}
+	// ora minCoins contiene il minimo che devo pagare per poter costruire
+	if minCoins <= p.Coins {
+		return true, false, minCoins // Buyable?, Free?, Coins
+	}
 
 	return false, false, MissingResources.Coins // Buyable?, Free?, Coins
 }

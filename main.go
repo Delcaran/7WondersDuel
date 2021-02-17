@@ -1,7 +1,7 @@
 package main
 
-import "game"
+import "7WondersDuel/game"
 
 func main() {
-	DeployBoard()
+	game.DeployBoard()
 }

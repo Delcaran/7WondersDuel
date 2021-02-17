@@ -211,7 +211,7 @@ func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool,
 	// Detraggo da questo costo le risorse dinamiche
 	minCoins := MissingResources.Coins
 	for _, o := range DynamicProduction {
-		tmp := MissionResources.Coins
+		tmp := MissingResources.Coins
 		tmp -= o.Wood * Prices.Wood
 		tmp -= o.Clay * Prices.Clay
 		tmp -= o.Stone * Prices.Stone

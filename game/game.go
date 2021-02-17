@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"bufio"
@@ -395,7 +395,7 @@ func loadBoardLayout(age int, data *gameContent) board {
 	return newBoard
 }
 
-func deployBoard() {
+func DeployBoard() {
 	boxContents, err := loadGameContent()
 	if err != nil {
 		log.Fatal(err)

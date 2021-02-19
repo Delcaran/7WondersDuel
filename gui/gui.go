@@ -6,7 +6,8 @@ import (
 	"github.com/rivo/tview"
 )
 
-func gui(game *game) Application {
+func Gui(game *game.Game) Application {
+	game.DeployBoard()
 	box := tview.NewBox().SetBorder(true).SetTitle("7 Wonders Duel")
 	app := tview.NewApplication().SetRoot(box, true)
 	return app

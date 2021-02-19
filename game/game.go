@@ -58,27 +58,27 @@ func calculateDynamicProduction(input []*production, inputIndex int, output []pr
 		if in.Wood > 0 {
 			newTmp := tmp
 			newTmp.Wood += in.Wood
-			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+			calculateDynamicProduction(input, inputIndex+1, output, newTmp)
 		}
 		if in.Clay > 0 {
 			newTmp := tmp
 			newTmp.Clay += in.Clay
-			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+			calculateDynamicProduction(input, inputIndex+1, output, newTmp)
 		}
 		if in.Stone > 0 {
 			newTmp := tmp
 			newTmp.Stone += in.Stone
-			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+			calculateDynamicProduction(input, inputIndex+1, output, newTmp)
 		}
 		if in.Papyrus > 0 {
 			newTmp := tmp
 			newTmp.Papyrus += in.Papyrus
-			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+			calculateDynamicProduction(input, inputIndex+1, output, newTmp)
 		}
 		if in.Glass > 0 {
 			newTmp := tmp
 			newTmp.Glass += in.Glass
-			calculateDynamicProduction(input, inputIndex + 1, output, newTmp)
+			calculateDynamicProduction(input, inputIndex+1, output, newTmp)
 		}
 	} else {
 		// fine del ramo
@@ -191,11 +191,11 @@ func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool,
 	// Not enough... calculate with Dynamic Production
 	for _, o := range DynamicProduction {
 		Buyable := true
-		Buyable = Buyable && (MissingResources.Wood - o.Wood) <= 0
-		Buyable = Buyable && (MissingResources.Clay - o.Clay) <= 0
-		Buyable = Buyable && (MissingResources.Stone - o.Stone) <= 0
-		Buyable = Buyable && (MissingResources.Papyrus - o.Papyrus) <= 0
-		Buyable = Buyable && (MissingResources.Glass - o.Glass) <= 0
+		Buyable = Buyable && (MissingResources.Wood-o.Wood) <= 0
+		Buyable = Buyable && (MissingResources.Clay-o.Clay) <= 0
+		Buyable = Buyable && (MissingResources.Stone-o.Stone) <= 0
+		Buyable = Buyable && (MissingResources.Papyrus-o.Papyrus) <= 0
+		Buyable = Buyable && (MissingResources.Glass-o.Glass) <= 0
 		if Buyable {
 			return Buyable, false, b.Cost.Coins // Buyable?, Free?, Coins
 		}
@@ -312,11 +312,13 @@ func (b *board) debugPrint() {
 	}
 }
 
-type game struct {
+type Game struct {
+	CurrentAge      int
 	CurrentPlayer   int
 	Board           board
 	Tokens          []token
 	DiscardedTokens []token
+	BoxContent      gameContent
 }
 
 func loadGameContent() (gameContent, error) {
@@ -395,14 +397,13 @@ func loadBoardLayout(age int, data *gameContent) board {
 	return newBoard
 }
 
-func DeployBoard() {
-	boxContents, err := loadGameContent()
-	if err != nil {
-		log.Fatal(err)
+func (g *Game) deployBoard() {
+	if g.CurrentAge == 1 {
+		var err error
+		g.BoxContent, err = loadGameContent()
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
-	for age := 1; age <= 3; age++ {
-		board := loadBoardLayout(age, &boxContents)
-		board.debugPrint()
-		fmt.Println()
-	}
+	g.Board = loadBoardLayout(g.CurrentAge, &g.BoxContent)
 }

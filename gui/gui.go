@@ -87,10 +87,6 @@ func Gui(game *game.Game) *tview.Application {
 	game.CurrentAge = 1
 	game.DeployBoard()
 
-	// TEST
-	game.CurrentAge = 3
-	// TEST
-
 	title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
 
 	boardTable := createBoardTable(game)

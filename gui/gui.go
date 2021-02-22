@@ -7,27 +7,39 @@ import (
 	"github.com/rivo/tview"
 )
 
+// Print the board just for reference. All action will be made from right panel
 func createBoardTable(game *game.Game) *tview.Table {
-	boardTable := tview.NewTable().SetBorders(false).SetSelectable(true, true)
-	minX := 10000
-	maxY := 0
+	boardTable := tview.NewTable().SetBorders(false).SetSelectable(false, false)
 	for r := 0; r <= game.Board.YMax; r++ {
 		for c := 0; c < game.Board.XMax; c++ {
 			card := game.Board.Cards[r][c]
 			if card.Building != nil {
-				if r > maxY {
-					maxY = r
-				}
-				if c < minX {
-					minX = c
-				}
 				cardName := "?"
 				color := tcell.ColorWhite
 				if card.Visible {
 					cardName = card.Building.Name
-				}
-				if game.Board.CardBlocked(&card) {
-					color = tcell.ColorYellow
+				} else {
+					switch card.Building.Type {
+					case "raw":
+						color := tcell.ColorBrown
+					case "manufactured":
+						color := tcell.ColorGrey
+					case "commercial":
+						color := tcell.ColorYellow
+					case "military":
+						color := tcell.ColorRed
+					case "guild":
+						color := tcell.ColorPurple
+					case "civilian":
+						color := tcell.ColorBlue
+					case "scientific":
+						color := tcell.ColorGreen
+					default:
+						color := tcell.ColorWhite
+					}
+					if game.Board.CardBlocked(&card) {
+						// TODO colore invertito
+					}
 				}
 				cell := tview.NewTableCell(cardName).
 					SetTextColor(color).
@@ -36,8 +48,6 @@ func createBoardTable(game *game.Game) *tview.Table {
 			}
 		}
 	}
-	boardTable.Select(maxY, minX) // first "buildable" card to the left
-
 	return boardTable
 }
 

@@ -3,6 +3,7 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -80,10 +81,15 @@ func createBoardTable(game *game.Game) *tview.Table {
 	return boardTable
 }
 
+// Gui creates and returs main window ready to be displayed
 func Gui(game *game.Game) *tview.Application {
 	// now we should populate the game?
 	game.CurrentAge = 1
 	game.DeployBoard()
+
+	// TEST
+	game.CurrentAge = 3
+	// TEST
 
 	title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
 

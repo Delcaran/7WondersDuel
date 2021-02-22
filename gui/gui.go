@@ -9,22 +9,32 @@ import (
 
 // Print the board just for reference. All action will be made from right panel
 func createBoardTable(game *game.Game) *tview.Table {
-	boardTable := tview.NewTable().SetBorders(false).SetSelectable(false, false)
+	boardTable := tview.NewTable().SetBorders(false).SetSelectable(true, true)
+	boardTable.SetSelectable(false, false)
+	//maxY := 0
+	//minX := 10000
 	for r := 0; r <= game.Board.YMax; r++ {
 		for c := 0; c < game.Board.XMax; c++ {
 			card := game.Board.Cards[r][c]
+			//selectable := false
 			if card.Building != nil {
-				cardName := "?"
+				cardName := "XXXXXXXXXX"
 				color := tcell.ColorWhite
 				if card.Visible {
+					//if r > maxY {
+					//	maxY = r
+					//}
+					//if c < minX {
+					//	minX = c
+					//}
 					cardName = card.Building.Name
 					switch card.Building.Type {
 					case "raw":
 						color = tcell.ColorBrown
 					case "manufactured":
-						color = tcell.ColorGrey
+						color = tcell.ColorDarkGrey
 					case "commercial":
-						color = tcell.ColorYellow
+						color = tcell.ColorGoldenrod
 					case "military":
 						color = tcell.ColorRed
 					case "guild":
@@ -36,17 +46,37 @@ func createBoardTable(game *game.Game) *tview.Table {
 					default:
 						color = tcell.ColorWhite
 					}
-					if game.Board.CardBlocked(&card) {
-						// TODO colore invertito
-					}
 				}
 				cell := tview.NewTableCell(cardName).
 					SetTextColor(color).
 					SetAlign(tview.AlignCenter)
+				bgColor := tcell.ColorWhite
+				if !game.Board.CardBlocked(&card) {
+					cell.SetBackgroundColor(bgColor)
+				} else {
+					if !card.Visible {
+						switch game.CurrentAge {
+						case 1:
+							bgColor = tcell.ColorDarkGoldenrod
+						case 2:
+							bgColor = tcell.ColorLightBlue
+						case 3:
+							bgColor = tcell.ColorViolet
+							if card.Building.Type == "guild" {
+								bgColor = tcell.ColorPurple
+							}
+						default:
+							bgColor = tcell.ColorWhite
+						}
+						cell.SetTextColor(bgColor).SetBackgroundColor(bgColor)
+					}
+				}
 				boardTable = boardTable.SetCell(r, c, cell)
 			}
+			//boardTable.GetCell(r, c).SetSelectable(selectable)
 		}
 	}
+	//boardTable.Select(maxY, minX)
 	return boardTable
 }
 

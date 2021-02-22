@@ -18,24 +18,23 @@ func createBoardTable(game *game.Game) *tview.Table {
 				color := tcell.ColorWhite
 				if card.Visible {
 					cardName = card.Building.Name
-				} else {
 					switch card.Building.Type {
 					case "raw":
-						color := tcell.ColorBrown
+						color = tcell.ColorBrown
 					case "manufactured":
-						color := tcell.ColorGrey
+						color = tcell.ColorGrey
 					case "commercial":
-						color := tcell.ColorYellow
+						color = tcell.ColorYellow
 					case "military":
-						color := tcell.ColorRed
+						color = tcell.ColorRed
 					case "guild":
-						color := tcell.ColorPurple
+						color = tcell.ColorPurple
 					case "civilian":
-						color := tcell.ColorBlue
+						color = tcell.ColorBlue
 					case "scientific":
-						color := tcell.ColorGreen
+						color = tcell.ColorGreen
 					default:
-						color := tcell.ColorWhite
+						color = tcell.ColorWhite
 					}
 					if game.Board.CardBlocked(&card) {
 						// TODO colore invertito

@@ -267,7 +267,7 @@ func (b *board) cardBlocks(c *card) [2]*card {
 	}
 	return blocked
 }
-func (b *board) cardBlocked(c *card) bool {
+func (b *board) CardBlocked(c *card) bool {
 	left := c.Position.X - 1
 	right := c.Position.X + 1
 	line := c.Position.Y + 1
@@ -300,7 +300,7 @@ func (b *board) debugPrint() {
 				if !card.Visible {
 					format = "?%s?"
 				}
-				if b.cardBlocked(&card) {
+				if b.CardBlocked(&card) {
 					format = fmt.Sprintf("#%s#", format)
 				}
 				fmt.Printf(format, card.Building.ID)
@@ -383,7 +383,6 @@ func loadBoardLayout(age int, data *gameContent) board {
 						newLine[c].Position.X = c
 						newLine[c].Position.Y = line
 						newLine[c].Visible = (text[c] == 'O') // uppercase letter o
-						//fmt.Printf("%s in ( y : %d , x : %d)\n", newLine[c].Building.ID, newLine[c].Position.Y, newLine[c].Position.X)
 						lastCard++
 					}
 				}

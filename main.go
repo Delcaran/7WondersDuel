@@ -5,7 +5,8 @@ import "7WondersDuel/gui"
 
 func main() {
 	var match game.Game
-	match.CurrentAge = 1
 	app := gui.Gui(&match)
-	app.Run()
+	if err := app.Run(); err != nil {
+		panic(err)
+	}
 }

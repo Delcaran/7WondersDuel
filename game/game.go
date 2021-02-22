@@ -397,7 +397,7 @@ func loadBoardLayout(age int, data *gameContent) board {
 	return newBoard
 }
 
-func (g *Game) deployBoard() {
+func (g *Game) DeployBoard() {
 	if g.CurrentAge == 1 {
 		var err error
 		g.BoxContent, err = loadGameContent()

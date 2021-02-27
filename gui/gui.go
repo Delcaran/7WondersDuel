@@ -3,6 +3,7 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )

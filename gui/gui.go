@@ -83,30 +83,25 @@ func createBoardTable(game *game.Game) *tview.Table {
 
 // Gui creates and returs main window ready to be displayed
 func Gui(game *game.Game) *tview.Application {
-	// now we should populate the game?
-	game.CurrentAge = 1
-	game.DeployBoard()
+	game.CurrentAge = 0
 
-	// create components
+	// create components & layout
 	app := tview.NewApplication()
-	title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
-	boardTable := createBoardTable(game)
-	demoNextAgeButton := tview.NewButton("DEMO NEXT AGE")
-
-	// define layout
 	youInfo := tview.NewFrame(nil).AddText("YOU", true, tview.AlignCenter, tcell.ColorBlue)
 	opponentInfo := tview.NewFrame(nil).AddText("OPPONENT", true, tview.AlignCenter, tcell.ColorRed)
 	mainLeftBottom := tview.NewFlex().SetDirection(tview.FlexColumn)
 	mainLeftBottom.AddItem(youInfo, 0, 1, false)
 	mainLeftBottom.AddItem(opponentInfo, 0, 1, false)
 	mainLeft := tview.NewFlex().SetDirection(tview.FlexRow)
+	boardTable := tview.NewTable()
 	mainLeft.AddItem(boardTable, 0, 1, false)
 	mainLeft.AddItem(mainLeftBottom, 0, 1, false)
+	demoNextAgeButton := tview.NewButton("DEMO NEXT AGE")
 	mainRight := tview.NewFrame(demoNextAgeButton).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
 	mainFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
 	mainFlex.AddItem(mainLeft, 0, 1, false)
 	mainFlex.AddItem(mainRight, 0, 1, true) // "Actions" has focus because all commands are here
-	main := tview.NewFrame(mainFlex).AddText(title, true, tview.AlignCenter, tcell.ColorGreen)
+	main := tview.NewFrame(mainFlex)
 
 	refreshFunc := func() {
 		game.CurrentAge++
@@ -114,9 +109,20 @@ func Gui(game *game.Game) *tview.Application {
 			app.Stop()
 		} else {
 			game.DeployBoard()
-			title = fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
+			title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
 			main.Clear()
-			main.AddText(title, true, tview.AlignCenter, tcell.ColorGreen)
+			titleColor := tcell.ColorWhite
+			switch game.CurrentAge {
+			case 1:
+				titleColor = tcell.ColorDarkGoldenrod
+			case 2:
+				titleColor = tcell.ColorLightBlue
+			case 3:
+				titleColor = tcell.ColorViolet
+			default:
+				titleColor = tcell.ColorWhite
+			}
+			main.AddText(title, true, tview.AlignCenter, titleColor)
 			mainLeft.RemoveItem(boardTable)
 			mainLeft.RemoveItem(mainLeftBottom)
 			boardTable = createBoardTable(game)
@@ -124,6 +130,9 @@ func Gui(game *game.Game) *tview.Application {
 			mainLeft.AddItem(mainLeftBottom, 0, 1, false)
 		}
 	}
+	// populate application
+	refreshFunc()
+
 	demoNextAgeButton.SetSelectedFunc(refreshFunc)
 
 	app.SetRoot(main, true).SetFocus(demoNextAgeButton)

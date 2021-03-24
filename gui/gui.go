@@ -83,8 +83,6 @@ func createBoardTable(game *game.Game) *tview.Table {
 
 // Gui creates and returs main window ready to be displayed
 func Gui(game *game.Game) *tview.Application {
-	game.CurrentAge = 0
-
 	// create components & layout
 	app := tview.NewApplication()
 	youInfo := tview.NewFrame(nil).AddText("YOU", true, tview.AlignCenter, tcell.ColorBlue)
@@ -120,7 +118,7 @@ func Gui(game *game.Game) *tview.Application {
 			case 3:
 				titleColor = tcell.ColorViolet
 			default:
-				titleColor = tcell.ColorWhite
+				titleColor = tcell.ColorRed // means "oh shit"
 			}
 			main.AddText(title, true, tview.AlignCenter, titleColor)
 			mainLeft.RemoveItem(boardTable)
@@ -130,13 +128,14 @@ func Gui(game *game.Game) *tview.Application {
 			mainLeft.AddItem(mainLeftBottom, 0, 1, false)
 		}
 	}
-	// populate application
-	refreshFunc()
-
 	demoNextAgeButton.SetSelectedFunc(refreshFunc)
-
 	app.SetRoot(main, true).SetFocus(demoNextAgeButton)
 
 	// GUI done, it's time to play
+
+	// initialization
+	game.CurrentAge = 0
+	refreshFunc()
+
 	return app
 }

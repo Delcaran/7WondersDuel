@@ -10,8 +10,8 @@ import (
 
 // Print the board just for reference. All action will be made from right panel
 func createBoardTable(game *game.Game) *tview.Table {
-	boardTable := tview.NewTable().SetBorders(false).SetSelectable(true, true)
-	boardTable.SetSelectable(false, false)
+	boardTable := tview.NewTable().SetBorders(false).SetSelectable(false, false)
+	boardTable = boardTable.Clear()
 	//maxY := 0
 	//minX := 10000
 	for r := 0; r <= game.Board.YMax; r++ {
@@ -87,10 +87,13 @@ func Gui(game *game.Game) *tview.Application {
 	game.CurrentAge = 1
 	game.DeployBoard()
 
+	// create components
+	app := tview.NewApplication()
 	title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
-
 	boardTable := createBoardTable(game)
+	demoNextAgeButton := tview.NewButton("DEMO NEXT AGE")
 
+	// define layout
 	youInfo := tview.NewFrame(nil).AddText("YOU", true, tview.AlignCenter, tcell.ColorBlue)
 	opponentInfo := tview.NewFrame(nil).AddText("OPPONENT", true, tview.AlignCenter, tcell.ColorRed)
 	mainLeftBottom := tview.NewFlex().SetDirection(tview.FlexColumn)
@@ -99,12 +102,31 @@ func Gui(game *game.Game) *tview.Application {
 	mainLeft := tview.NewFlex().SetDirection(tview.FlexRow)
 	mainLeft.AddItem(boardTable, 0, 1, false)
 	mainLeft.AddItem(mainLeftBottom, 0, 1, false)
-	mainRight := tview.NewFrame(nil).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
+	mainRight := tview.NewFrame(demoNextAgeButton).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
 	mainFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
 	mainFlex.AddItem(mainLeft, 0, 1, false)
-	mainFlex.AddItem(mainRight, 0, 1, true)
+	mainFlex.AddItem(mainRight, 0, 1, true) // "Actions" has focus because all commands are here
 	main := tview.NewFrame(mainFlex).AddText(title, true, tview.AlignCenter, tcell.ColorGreen)
-	app := tview.NewApplication().SetRoot(main, true)
+
+	refreshFunc := func() {
+		game.CurrentAge++
+		if game.CurrentAge > 3 {
+			app.Stop()
+		} else {
+			game.DeployBoard()
+			title = fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
+			main.Clear()
+			main.AddText(title, true, tview.AlignCenter, tcell.ColorGreen)
+			mainLeft.RemoveItem(boardTable)
+			mainLeft.RemoveItem(mainLeftBottom)
+			boardTable = createBoardTable(game)
+			mainLeft.AddItem(boardTable, 0, 1, false)
+			mainLeft.AddItem(mainLeftBottom, 0, 1, false)
+		}
+	}
+	demoNextAgeButton.SetSelectedFunc(refreshFunc)
+
+	app.SetRoot(main, true).SetFocus(demoNextAgeButton)
 
 	// GUI done, it's time to play
 	return app

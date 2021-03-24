@@ -90,11 +90,21 @@ func Gui(game *game.Game) *tview.Application {
 	title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
 
 	boardTable := createBoardTable(game)
-	infoFrame := tview.NewFrame(nil).AddText(title, true, tview.AlignCenter, tcell.ColorGreen)
-	mainGrid := tview.NewGrid().SetBorders(true)
-	mainGrid.AddItem(boardTable, 0, 0, 1, 1, 0, 0, true)
-	mainGrid.AddItem(infoFrame, 0, 1, 1, 1, 0, 0, false)
-	app := tview.NewApplication().SetRoot(mainGrid, true)
+
+	youInfo := tview.NewFrame(nil).AddText("YOU", true, tview.AlignCenter, tcell.ColorBlue)
+	opponentInfo := tview.NewFrame(nil).AddText("OPPONENT", true, tview.AlignCenter, tcell.ColorRed)
+	mainLeftBottom := tview.NewFlex().SetDirection(tview.FlexColumn)
+	mainLeftBottom.AddItem(youInfo, 0, 1, false)
+	mainLeftBottom.AddItem(opponentInfo, 0, 1, false)
+	mainLeft := tview.NewFlex().SetDirection(tview.FlexRow)
+	mainLeft.AddItem(boardTable, 0, 1, false)
+	mainLeft.AddItem(mainLeftBottom, 0, 1, false)
+	mainRight := tview.NewFrame(nil).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
+	mainFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
+	mainFlex.AddItem(mainLeft, 0, 1, false)
+	mainFlex.AddItem(mainRight, 0, 1, true)
+	main := tview.NewFrame(mainFlex).AddText(title, true, tview.AlignCenter, tcell.ColorGreen)
+	app := tview.NewApplication().SetRoot(main, true)
 
 	// GUI done, it's time to play
 	return app

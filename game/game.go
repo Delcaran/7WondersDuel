@@ -20,7 +20,7 @@ type gameContent struct {
 	Wonders []wonder
 	Decks   []deck
 	Tokens  []token
-	Coins   resource
+	Coins   int
 }
 
 func (d *gameContent) prepareContent() {
@@ -44,8 +44,8 @@ func (d *gameContent) prepareContent() {
 
 type player struct {
 	Points        int
-	Coins         resource
-	BonusShields  resource // in addition of those from buildings
+	Coins         int
+	BonusShields  int // in addition of those from buildings
 	MilitaryPower int
 	Wonders       []wonder
 	Buildings     []building
@@ -147,8 +147,8 @@ func (p *player) calculatePrices(opponent *player) cost {
 	return Prices
 }
 
-func (p *player) calculateSellIncome() resource {
-	var Coins resource
+func (p *player) calculateSellIncome() int {
+	var Coins int
 	Coins = 2
 	for _, b := range p.Buildings {
 		if b.Type == "commercial" {
@@ -158,7 +158,7 @@ func (p *player) calculateSellIncome() resource {
 	return Coins
 }
 
-func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool, resource) {
+func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool, int) {
 	var MissingResources cost
 	// check links for free building
 	for _, l := range p.Links {

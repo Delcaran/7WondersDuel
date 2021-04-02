@@ -26,7 +26,7 @@ func (b *wonder) getCost() *cost {
 
 type bonus struct {
 	Best   []string
-	Coin   resource
+	Coin   int
 	Points int
 }
 

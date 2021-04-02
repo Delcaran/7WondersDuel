@@ -1,40 +1,61 @@
 package game
 
-type resource int
-
 type cost struct {
-	Coins   resource
-	Wood    resource
-	Clay    resource
-	Stone   resource
-	Glass   resource
-	Papyrus resource
+	Coins   int
+	Wood    int
+	Clay    int
+	Stone   int
+	Glass   int
+	Papyrus int
 }
 
 type production struct {
-	Coins   resource
-	Wood    resource
-	Clay    resource
-	Stone   resource
-	Glass   resource
-	Papyrus resource
-	Shield  resource
+	Coins   int
+	Wood    int
+	Clay    int
+	Stone   int
+	Glass   int
+	Papyrus int
+	Shield  int
 	Choice  bool
+}
+
+const (
+	coins = iota
+	wood
+	clay
+	stone
+	glass
+	papyrus
+	shield
+)
+
+func (p *production) ToMap() map[string]int {
+	var m = map[string]int{
+		"Coins":   p.Coins,
+		"Wood":    p.Wood,
+		"Clay":    p.Clay,
+		"Stone":   p.Stone,
+		"Glass":   p.Glass,
+		"Papyrus": p.Papyrus,
+		"Shield":  p.Shield,
+	}
+	return m
 }
 
 type forEach struct {
 	Building string
-	Coins    resource
+	Coins    int
 }
 
 type construction struct {
 	Points       int
 	Turn         bool
-	Coins        resource
-	CoinsRemoved resource
+	Coins        int
+	CoinsRemoved int
 	Discard      string
 	Tokens       tokenChoice
-	Shield       resource
+	Shield       int
 	Production   production
 	ForEach      forEach
 }

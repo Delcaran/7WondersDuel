@@ -3,7 +3,6 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
-	"reflect"
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
@@ -83,19 +82,33 @@ func createBoardTable(game *game.Game) *tview.Table {
 	return boardTable
 }
 
-func fillPlayerInfoArea(game *game.Game, player int, view *tview.Table) {
+func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table) {
 	view.SetBorders(false).SetSelectable(false, false)
 	view.Clear()
-	fixedRes, _ := game.Players[player].AvailableResources()
-	riga := 0
+	fixedRes, _ := g.Players[player].AvailableResources()
 	cText := 0
 	cVal := 1
-	s := reflect.ValueOf(&fixedRes).Elem()
-	typeOfT := s.Type()
-	for riga := 0; riga < s.NumField(); riga++ {
-		f := s.Field(riga)
-		view = view.SetCell(riga, cText, tview.NewTableCell(typeOfT.Field(riga).Name).SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignRight))
-		view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(f.Interface().(int))).SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignCenter))
+	data := fixedRes.ToMap()
+	labels := []string{"Coins", "Wood", "Stone", "Clay", "Glass", "Papyrus"}
+	for riga, label := range labels {
+		value := data[label]
+		color := tcell.ColorWhite
+		switch label {
+		case "Coins":
+			color = tcell.ColorYellow
+		case "Wood":
+			color = tcell.ColorBrown
+		case "Stone":
+			color = tcell.ColorGrey
+		case "Clay":
+			color = tcell.ColorOrange
+		case "Glass":
+			color = tcell.ColorLightBlue
+		case "Papyrus":
+			color = tcell.ColorGoldenrod
+		}
+		view = view.SetCell(riga, cText, tview.NewTableCell(label).SetTextColor(color).SetAlign(tview.AlignRight))
+		view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(value)).SetTextColor(color).SetAlign(tview.AlignCenter))
 	}
 }
 

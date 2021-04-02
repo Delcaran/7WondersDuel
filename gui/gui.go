@@ -94,8 +94,7 @@ func Gui(game *game.Game) *tview.Application {
 	boardTable := tview.NewTable()
 	mainLeft.AddItem(boardTable, 0, 1, false)
 	mainLeft.AddItem(mainLeftBottom, 0, 1, false)
-	demoNextAgeButton := tview.NewButton("DEMO NEXT AGE")
-	mainRight := tview.NewFrame(demoNextAgeButton).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
+	mainRight := tview.NewFrame(nil).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
 	mainFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
 	mainFlex.AddItem(mainLeft, 0, 1, false)
 	mainFlex.AddItem(mainRight, 0, 1, true) // "Actions" has focus because all commands are here
@@ -128,8 +127,19 @@ func Gui(game *game.Game) *tview.Application {
 			mainLeft.AddItem(mainLeftBottom, 0, 1, false)
 		}
 	}
-	demoNextAgeButton.SetSelectedFunc(refreshFunc)
-	app.SetRoot(main, true).SetFocus(demoNextAgeButton)
+	app.SetRoot(main, true)
+
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// BEGIN DEBUG FUNCTIONALITY
+		switch event.Rune() {
+		case 'n':
+			refreshFunc()
+		case 'q':
+			app.Stop()
+		}
+		// END DEBUG FUNCTIONALITY
+		return event
+	})
 
 	// GUI done, it's time to play
 

@@ -3,6 +3,7 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
@@ -89,12 +90,13 @@ func fillPlayerInfoArea(game *game.Game, player int, view *tview.Table) {
 	riga := 0
 	cText := 0
 	cVal := 1
-	view = view.SetCell(riga, cText, tview.NewTableCell("Wood").SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignRight))
-	view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(int(fixedRes.Wood))).SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignCenter))
-	riga++
-	view = view.SetCell(riga, cText, tview.NewTableCell("Stone").SetTextColor(tcell.ColorGrey).SetAlign(tview.AlignRight))
-	view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(int(fixedRes.Stone))).SetTextColor(tcell.ColorGrey).SetAlign(tview.AlignCenter))
-
+	s := reflect.ValueOf(&fixedRes).Elem()
+	typeOfT := s.Type()
+	for riga := 0; riga < s.NumField(); riga++ {
+		f := s.Field(riga)
+		view = view.SetCell(riga, cText, tview.NewTableCell(typeOfT.Field(riga).Name).SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignRight))
+		view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(f.Interface().(int))).SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignCenter))
+	}
 }
 
 // Gui creates and returs main window ready to be displayed

@@ -50,6 +50,7 @@ type player struct {
 	Wonders       []wonder
 	Buildings     []building
 	Links         []string
+	Tokens        []token
 }
 
 func calculateDynamicProduction(input []*production, inputIndex int, output []production, tmp production) {
@@ -87,7 +88,7 @@ func calculateDynamicProduction(input []*production, inputIndex int, output []pr
 	}
 }
 
-func (p *player) availableResources() (production, []production) {
+func (p *player) AvailableResources() (production, []production) {
 	var fixed production
 	var toBeAnalized []*production
 	genericBuildings := []genericBuilding{}
@@ -118,7 +119,7 @@ func (p *player) availableResources() (production, []production) {
 
 func (p *player) calculatePrices(opponent *player) cost {
 	var Prices cost
-	opponentFixedProduction, _ := opponent.availableResources() // only raw and manufactured are fixed
+	opponentFixedProduction, _ := opponent.AvailableResources() // only raw and manufactured are fixed
 	Prices.Wood = 2 + opponentFixedProduction.Wood
 	Prices.Clay = 2 + opponentFixedProduction.Clay
 	Prices.Stone = 2 + opponentFixedProduction.Stone
@@ -171,7 +172,7 @@ func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool,
 	}
 	// check available resources and prices for missing ones
 	Buyable := true
-	FixedProduction, DynamicProduction := p.availableResources()
+	FixedProduction, DynamicProduction := p.AvailableResources()
 	MissingResources = b.Cost
 	MissingResources.Wood -= FixedProduction.Wood
 	MissingResources.Clay -= FixedProduction.Clay
@@ -312,6 +313,7 @@ func (b *board) debugPrint() {
 	}
 }
 
+// Game contains all the information required to play
 type Game struct {
 	CurrentAge      int
 	CurrentPlayer   int
@@ -319,6 +321,7 @@ type Game struct {
 	Tokens          []token
 	DiscardedTokens []token
 	BoxContent      gameContent
+	Players         [2]player
 }
 
 func loadGameContent() (gameContent, error) {
@@ -396,6 +399,7 @@ func loadBoardLayout(age int, data *gameContent) board {
 	return newBoard
 }
 
+// DeployBoard generates the layout for playing
 func (g *Game) DeployBoard() {
 	if g.CurrentAge == 1 {
 		var err error

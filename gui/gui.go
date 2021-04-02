@@ -3,6 +3,7 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
+	"strconv"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -81,15 +82,32 @@ func createBoardTable(game *game.Game) *tview.Table {
 	return boardTable
 }
 
+func fillPlayerInfoArea(game *game.Game, player int, view *tview.Table) {
+	view.SetBorders(false).SetSelectable(false, false)
+	view.Clear()
+	fixedRes, _ := game.Players[player].AvailableResources()
+	riga := 0
+	cText := 0
+	cVal := 1
+	view = view.SetCell(riga, cText, tview.NewTableCell("Wood").SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignRight))
+	view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(int(fixedRes.Wood))).SetTextColor(tcell.ColorBrown).SetAlign(tview.AlignCenter))
+	riga++
+	view = view.SetCell(riga, cText, tview.NewTableCell("Stone").SetTextColor(tcell.ColorGrey).SetAlign(tview.AlignRight))
+	view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(int(fixedRes.Stone))).SetTextColor(tcell.ColorGrey).SetAlign(tview.AlignCenter))
+
+}
+
 // Gui creates and returs main window ready to be displayed
 func Gui(game *game.Game) *tview.Application {
 	// create components & layout
 	app := tview.NewApplication()
-	youInfo := tview.NewFrame(nil).AddText("YOU", true, tview.AlignCenter, tcell.ColorBlue)
-	opponentInfo := tview.NewFrame(nil).AddText("OPPONENT", true, tview.AlignCenter, tcell.ColorRed)
+	youInfo := tview.NewTable()
+	fillPlayerInfoArea(game, 0, youInfo)
+	youInfoFrame := tview.NewFrame(youInfo).AddText("YOU", true, tview.AlignCenter, tcell.ColorBlue)
+	opponentInfoFrame := tview.NewFrame(nil).AddText("OPPONENT", true, tview.AlignCenter, tcell.ColorRed)
 	mainLeftBottom := tview.NewFlex().SetDirection(tview.FlexColumn)
-	mainLeftBottom.AddItem(youInfo, 0, 1, false)
-	mainLeftBottom.AddItem(opponentInfo, 0, 1, false)
+	mainLeftBottom.AddItem(youInfoFrame, 0, 1, false)
+	mainLeftBottom.AddItem(opponentInfoFrame, 0, 1, false)
 	mainLeft := tview.NewFlex().SetDirection(tview.FlexRow)
 	boardTable := tview.NewTable()
 	mainLeft.AddItem(boardTable, 0, 1, false)

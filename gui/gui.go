@@ -3,16 +3,17 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
+	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 // Print the board just for reference. All action will be made from right panel
-func createBoardTable(game *game.Game) *tview.Table {
-	boardTable := tview.NewTable().SetBorders(false).SetSelectable(false, false)
-	boardTable = boardTable.Clear()
+func fillBoardTable(game *game.Game, boardTable *tview.Table) {
+	boardTable = boardTable.Clear().SetBorders(false).SetSelectable(false, false)
 	//maxY := 0
 	//minX := 10000
 	for r := 0; r <= game.Board.YMax; r++ {
@@ -79,12 +80,25 @@ func createBoardTable(game *game.Game) *tview.Table {
 		}
 	}
 	//boardTable.Select(maxY, minX)
-	return boardTable
 }
 
-func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table) {
-	view.SetBorders(false).SetSelectable(false, false)
-	view.Clear()
+func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tview.Frame) {
+	var text string
+	var textColor string
+	flags := "-"
+	if player == 0 {
+		text = "YOU"
+		textColor = "blue"
+	} else {
+		text = "OPPONENT"
+		textColor = "red"
+	}
+	if player == g.CurrentPlayer {
+		flags = "u"
+	}
+	fulltext := fmt.Sprintf("[%s::%s]%s[white]", textColor, flags, text)
+	frame.Clear().AddText(fulltext, true, tview.AlignCenter, tcell.ColorWhite)
+	view.SetBorders(false).SetSelectable(false, false).Clear()
 	fixedRes, _ := g.Players[player].AvailableResources()
 	cText := 0
 	cVal := 1
@@ -92,10 +106,11 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table) {
 	labels := []string{"Coins", "Wood", "Stone", "Clay", "Glass", "Papyrus"}
 	for riga, label := range labels {
 		value := data[label]
-		color := tcell.ColorWhite
+		var color tcell.Color
 		switch label {
 		case "Coins":
 			color = tcell.ColorYellow
+			value = g.Players[player].Coins // non derivano da produzione, ma sono possedute
 		case "Wood":
 			color = tcell.ColorBrown
 		case "Stone":
@@ -117,9 +132,9 @@ func Gui(game *game.Game) *tview.Application {
 	// create components & layout
 	app := tview.NewApplication()
 	youInfo := tview.NewTable()
-	fillPlayerInfoArea(game, 0, youInfo)
-	youInfoFrame := tview.NewFrame(youInfo).AddText("YOU", true, tview.AlignCenter, tcell.ColorBlue)
-	opponentInfoFrame := tview.NewFrame(nil).AddText("OPPONENT", true, tview.AlignCenter, tcell.ColorRed)
+	youInfoFrame := tview.NewFrame(youInfo)
+	opponentInfo := tview.NewTable()
+	opponentInfoFrame := tview.NewFrame(opponentInfo)
 	mainLeftBottom := tview.NewFlex().SetDirection(tview.FlexColumn)
 	mainLeftBottom.AddItem(youInfoFrame, 0, 1, false)
 	mainLeftBottom.AddItem(opponentInfoFrame, 0, 1, false)
@@ -134,13 +149,16 @@ func Gui(game *game.Game) *tview.Application {
 	main := tview.NewFrame(mainFlex)
 
 	refreshFunc := func() {
-		game.CurrentAge++
 		if game.CurrentAge > 3 {
 			app.Stop()
 		} else {
+			if game.CurrentPlayer > 0 {
+				game.CurrentPlayer = 0
+			} else {
+				game.CurrentPlayer = 1
+			}
 			game.DeployBoard()
 			title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
-			main.Clear()
 			titleColor := tcell.ColorWhite
 			switch game.CurrentAge {
 			case 1:
@@ -152,12 +170,11 @@ func Gui(game *game.Game) *tview.Application {
 			default:
 				titleColor = tcell.ColorRed // means "oh shit"
 			}
+			main.Clear()
 			main.AddText(title, true, tview.AlignCenter, titleColor)
-			mainLeft.RemoveItem(boardTable)
-			mainLeft.RemoveItem(mainLeftBottom)
-			boardTable = createBoardTable(game)
-			mainLeft.AddItem(boardTable, 0, 1, false)
-			mainLeft.AddItem(mainLeftBottom, 0, 1, false)
+			fillBoardTable(game, boardTable)
+			fillPlayerInfoArea(game, 0, youInfo, youInfoFrame)
+			fillPlayerInfoArea(game, 1, opponentInfo, opponentInfoFrame)
 		}
 	}
 	app.SetRoot(main, true)
@@ -166,9 +183,13 @@ func Gui(game *game.Game) *tview.Application {
 		// BEGIN DEBUG FUNCTIONALITY
 		switch event.Rune() {
 		case 'n':
+			game.CurrentAge++
 			refreshFunc()
 		case 'q':
 			app.Stop()
+		case 'c':
+			game.Players[0].Coins += 2
+			refreshFunc()
 		}
 		// END DEBUG FUNCTIONALITY
 		return event
@@ -177,8 +198,11 @@ func Gui(game *game.Game) *tview.Application {
 	// GUI done, it's time to play
 
 	// initialization
-	game.CurrentAge = 0
+	rand.Seed(time.Now().UnixNano())
+	game.CurrentAge = 1
+	game.CurrentPlayer = rand.Intn(2)
 	refreshFunc()
+	game.CurrentRound = 1
 
 	return app
 }

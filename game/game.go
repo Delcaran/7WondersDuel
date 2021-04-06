@@ -315,6 +315,7 @@ func (b *board) debugPrint() {
 
 // Game contains all the information required to play
 type Game struct {
+	CurrentRound    int
 	CurrentAge      int
 	CurrentPlayer   int
 	Board           board
@@ -401,11 +402,17 @@ func loadBoardLayout(age int, data *gameContent) board {
 
 // DeployBoard generates the layout for playing
 func (g *Game) DeployBoard() {
-	if g.CurrentAge == 1 {
+	if g.CurrentRound == 0 {
 		var err error
 		g.BoxContent, err = loadGameContent()
 		if err != nil {
 			log.Fatal(err)
+		}
+		// Setup initial data
+		g.BoxContent.Coins = 14*1 + 10*3 + 7*6
+		for p := range g.Players {
+			g.BoxContent.Coins -= 7
+			g.Players[p].Coins = 7
 		}
 	}
 	g.Board = loadBoardLayout(g.CurrentAge, &g.BoxContent)

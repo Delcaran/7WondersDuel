@@ -11,44 +11,41 @@ import (
 	"github.com/rivo/tview"
 )
 
+func getTypeColor(cardtype string) tcell.Color {
+	color := tcell.ColorWhite
+	switch cardtype {
+	case "raw":
+		color = tcell.ColorBrown
+	case "manufactured":
+		color = tcell.ColorDarkGrey
+	case "commercial":
+		color = tcell.ColorGoldenrod
+	case "military":
+		color = tcell.ColorRed
+	case "guild":
+		color = tcell.ColorPurple
+	case "civilian":
+		color = tcell.ColorBlue
+	case "scientific":
+		color = tcell.ColorGreen
+	default:
+		color = tcell.ColorWhite
+	}
+	return color
+}
+
 // Print the board just for reference. All action will be made from right panel
 func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 	boardTable = boardTable.Clear().SetBorders(false).SetSelectable(false, false)
-	//maxY := 0
-	//minX := 10000
 	for r := 0; r <= game.Board.YMax; r++ {
 		for c := 0; c < game.Board.XMax; c++ {
 			card := game.Board.Cards[r][c]
-			//selectable := false
 			if card.Building != nil {
 				cardName := "XXXXXXXXXX"
 				color := tcell.ColorWhite
 				if card.Visible {
-					//if r > maxY {
-					//	maxY = r
-					//}
-					//if c < minX {
-					//	minX = c
-					//}
 					cardName = card.Building.Name
-					switch card.Building.Type {
-					case "raw":
-						color = tcell.ColorBrown
-					case "manufactured":
-						color = tcell.ColorDarkGrey
-					case "commercial":
-						color = tcell.ColorGoldenrod
-					case "military":
-						color = tcell.ColorRed
-					case "guild":
-						color = tcell.ColorPurple
-					case "civilian":
-						color = tcell.ColorBlue
-					case "scientific":
-						color = tcell.ColorGreen
-					default:
-						color = tcell.ColorWhite
-					}
+					color = getTypeColor(card.Building.Type)
 				}
 				cell := tview.NewTableCell(cardName).
 					SetTextColor(color).
@@ -76,10 +73,8 @@ func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 				}
 				boardTable = boardTable.SetCell(r, c, cell)
 			}
-			//boardTable.GetCell(r, c).SetSelectable(selectable)
 		}
 	}
-	//boardTable.Select(maxY, minX)
 }
 
 func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tview.Frame) {
@@ -127,6 +122,20 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tvie
 	}
 }
 
+func fillActions(g *game.Game, view *tview.Table) {
+	view.SetBorders(false).SetSelectable(false, false).Clear()
+	row := 0
+	for r := 0; r <= g.Board.YMax; r++ {
+		for c := 0; c < g.Board.XMax; c++ {
+			card := g.Board.Cards[r][c]
+			if card.Visible && !g.Board.CardBlocked(&card) {
+				view.SetCell(row, 0, tview.NewTableCell(card.Building.Name).SetTextColor(getTypeColor(card.Building.Type)))
+				row++
+			}
+		}
+	}
+}
+
 // Gui creates and returs main window ready to be displayed
 func Gui(game *game.Game) *tview.Application {
 	// create components & layout
@@ -142,7 +151,8 @@ func Gui(game *game.Game) *tview.Application {
 	boardTable := tview.NewTable()
 	mainLeft.AddItem(boardTable, 0, 1, false)
 	mainLeft.AddItem(mainLeftBottom, 0, 1, false)
-	mainRight := tview.NewFrame(nil).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
+	actionsTable := tview.NewTable()
+	mainRight := tview.NewFrame(actionsTable).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
 	mainFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
 	mainFlex.AddItem(mainLeft, 0, 1, false)
 	mainFlex.AddItem(mainRight, 0, 1, true) // "Actions" has focus because all commands are here
@@ -175,6 +185,7 @@ func Gui(game *game.Game) *tview.Application {
 			fillBoardTable(game, boardTable)
 			fillPlayerInfoArea(game, 0, youInfo, youInfoFrame)
 			fillPlayerInfoArea(game, 1, opponentInfo, opponentInfoFrame)
+			fillActions(game, actionsTable)
 		}
 	}
 	app.SetRoot(main, true)

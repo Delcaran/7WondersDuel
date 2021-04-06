@@ -235,24 +235,25 @@ type position struct {
 	Y int // 0 is top
 }
 
-type card struct {
+// Card represents a physical card on the board
+type Card struct {
 	Building *building
 	Visible  bool
 	Position position
 }
 
 type board struct {
-	Cards [][]card // [y][x]
+	Cards [][]Card // [y][x]
 	XMax  int
 	YMax  int
 }
 
-func (b *board) cardBlocks(c *card) [2]*card {
+func (b *board) cardBlocks(c *Card) [2]*Card {
 	left := c.Position.X - 1
 	right := c.Position.X + 1
 	line := c.Position.Y - 1
 
-	var blocked [2]*card
+	var blocked [2]*Card
 
 	if line >= 0 && line <= b.YMax {
 		if left >= 0 && left <= b.XMax {
@@ -268,7 +269,7 @@ func (b *board) cardBlocks(c *card) [2]*card {
 	}
 	return blocked
 }
-func (b *board) CardBlocked(c *card) bool {
+func (b *board) CardBlocked(c *Card) bool {
 	left := c.Position.X - 1
 	right := c.Position.X + 1
 	line := c.Position.Y + 1
@@ -379,7 +380,7 @@ func loadBoardLayout(age int, data *gameContent) board {
 				// this is the right layout for the requested age
 				newBoard.YMax = line
 				newBoard.XMax = lenght // every line in layout MUST have the same number of chars
-				newLine := make([]card, newBoard.XMax)
+				newLine := make([]Card, newBoard.XMax)
 				for c := 0; c < lenght; c++ {
 					newLine[c].Building = nil
 					if text[c] != ' ' {

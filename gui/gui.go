@@ -11,9 +11,9 @@ import (
 	"github.com/rivo/tview"
 )
 
-func getTypeColor(cardtype string) tcell.Color {
+func getTypeColor(card *game.Card) tcell.Color {
 	color := tcell.ColorWhite
-	switch cardtype {
+	switch card.Building.Type {
 	case "raw":
 		color = tcell.ColorBrown
 	case "manufactured":
@@ -34,6 +34,29 @@ func getTypeColor(cardtype string) tcell.Color {
 	return color
 }
 
+func getTypeColorString(card *game.Card) string {
+	color := "white"
+	switch card.Building.Type {
+	case "raw":
+		color = "brown"
+	case "manufactured":
+		color = "darkgrey"
+	case "commercial":
+		color = "goldenrod"
+	case "military":
+		color = "red"
+	case "guild":
+		color = "purple"
+	case "civilian":
+		color = "blue"
+	case "scientific":
+		color = "green"
+	default:
+		color = "white"
+	}
+	return color
+}
+
 // Print the board just for reference. All action will be made from right panel
 func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 	boardTable = boardTable.Clear().SetBorders(false).SetSelectable(false, false)
@@ -45,7 +68,7 @@ func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 				color := tcell.ColorWhite
 				if card.Visible {
 					cardName = card.Building.Name
-					color = getTypeColor(card.Building.Type)
+					color = getTypeColor(&card)
 				}
 				cell := tview.NewTableCell(cardName).
 					SetTextColor(color).
@@ -122,14 +145,40 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tvie
 	}
 }
 
-func fillActions(g *game.Game, view *tview.Table) {
-	view.SetBorders(false).SetSelectable(false, false).Clear()
+func fillActions(g *game.Game, view *tview.List, actions *tview.List, actionsFrame *tview.Frame) {
+	cardSelectors := "0123456789"
+	cardRunes := []rune(cardSelectors)
+	view.Clear()
+	var cards []*game.Card
 	row := 0
 	for r := 0; r <= g.Board.YMax; r++ {
 		for c := 0; c < g.Board.XMax; c++ {
 			card := g.Board.Cards[r][c]
 			if card.Visible && !g.Board.CardBlocked(&card) {
-				view.SetCell(row, 0, tview.NewTableCell(card.Building.Name).SetTextColor(getTypeColor(card.Building.Type)))
+				cards = append(cards, &card)
+				text := fmt.Sprintf("[%s]%s[white]", getTypeColorString(&card), card.Building.Name)
+				view.AddItem(text, "", cardRunes[row], func() {
+					actions.Clear()
+					actions.AddItem("Build", "", 'b', func() {})
+					actions.AddItem("Destroy", "", 'd', func() {})
+					actions.AddItem("Wonder", "", 'w', func() {})
+					/*
+						card := cards[row]
+						actions.SetBorders(false).SetSelectable(false, true).Clear()
+						text := fmt.Sprintf("What to do with [%s]%s[white]?", getTypeColorString(card), card.Building.Name)
+						actionsFrame.Clear().AddText(text, true, tview.AlignCenter, tcell.ColorWhite)
+						actions.SetCell(0, 0, tview.NewTableCell("Build"))
+						actions.SetCell(0, 1, tview.NewTableCell("Destroy"))
+						actions.SetCell(0, 2, tview.NewTableCell("Wonder"))
+						view.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+							switch event.Rune() {
+							case 't':
+								actionsFrame.Clear()
+							}
+							return event
+						})
+					*/
+				})
 				row++
 			}
 		}
@@ -151,11 +200,16 @@ func Gui(game *game.Game) *tview.Application {
 	boardTable := tview.NewTable()
 	mainLeft.AddItem(boardTable, 0, 1, false)
 	mainLeft.AddItem(mainLeftBottom, 0, 1, false)
-	actionsTable := tview.NewTable()
-	mainRight := tview.NewFrame(actionsTable).AddText("Actions", true, tview.AlignCenter, tcell.ColorWhite)
+	activeCardsList := tview.NewList()
+	actionsList := tview.NewList()
+	mainRightTop := tview.NewFrame(activeCardsList).AddText("USABLE CARDS", true, tview.AlignCenter, tcell.ColorWhite)
+	mainRightBottom := tview.NewFrame(actionsList)
+	mainRight := tview.NewFlex().SetDirection(tview.FlexRow)
+	mainRight.AddItem(mainRightTop, 0, 1, false)
+	mainRight.AddItem(mainRightBottom, 0, 1, false)
 	mainFlex := tview.NewFlex().SetDirection(tview.FlexColumn)
 	mainFlex.AddItem(mainLeft, 0, 1, false)
-	mainFlex.AddItem(mainRight, 0, 1, true) // "Actions" has focus because all commands are here
+	mainFlex.AddItem(mainRight, 0, 1, true) // "USABLE CARDS" has focus because all commands start from here
 	main := tview.NewFrame(mainFlex)
 
 	refreshFunc := func() {
@@ -185,10 +239,11 @@ func Gui(game *game.Game) *tview.Application {
 			fillBoardTable(game, boardTable)
 			fillPlayerInfoArea(game, 0, youInfo, youInfoFrame)
 			fillPlayerInfoArea(game, 1, opponentInfo, opponentInfoFrame)
-			fillActions(game, actionsTable)
+			fillActions(game, activeCardsList, actionsList, mainRightBottom)
 		}
 	}
 	app.SetRoot(main, true)
+	app.SetFocus(activeCardsList)
 
 	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		// BEGIN DEBUG FUNCTIONALITY

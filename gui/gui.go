@@ -168,7 +168,7 @@ func appendValue(text *string, value int, color string) int {
 func appendBlock(text *string, block string) {
 	if len(block) > 0 {
 		if len(*text) > 0 {
-			*text = fmt.Sprintf("%s - ", *text)
+			*text = fmt.Sprintf("%s ", *text)
 		}
 		*text = fmt.Sprintf("%s%s", *text, block)
 	}

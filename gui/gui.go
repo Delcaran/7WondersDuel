@@ -145,39 +145,41 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tvie
 	}
 }
 
+func calculateBuildingCost(g *game.Game, card *game.Card) (bool, bool, int) {
+	otherPlayer := 0
+	if g.CurrentPlayer == otherPlayer {
+		otherPlayer = 1
+	}
+
+	buyable, free, coins := g.Players[g.CurrentPlayer].CalculateBuyingCost(card.Building, &g.Players[otherPlayer])
+	return buyable, free, coins
+}
+
 func fillActions(g *game.Game, view *tview.List, actions *tview.List, actionsFrame *tview.Frame) {
 	cardSelectors := "0123456789"
 	cardRunes := []rune(cardSelectors)
 	view.Clear()
-	var cards []*game.Card
 	row := 0
 	for r := 0; r <= g.Board.YMax; r++ {
 		for c := 0; c < g.Board.XMax; c++ {
 			card := g.Board.Cards[r][c]
 			if card.Visible && !g.Board.CardBlocked(&card) {
-				cards = append(cards, &card)
 				text := fmt.Sprintf("[%s]%s[white]", getTypeColorString(&card), card.Building.Name)
+				buyable, free, coins := calculateBuildingCost(g, &card)
+				sellIncome := g.Players[g.CurrentPlayer].CalculateSellIncome()
 				view.AddItem(text, "", cardRunes[row], func() {
 					actions.Clear()
-					actions.AddItem("Build", "", 'b', func() {})
-					actions.AddItem("Destroy", "", 'd', func() {})
-					actions.AddItem("Wonder", "", 'w', func() {})
-					/*
-						card := cards[row]
-						actions.SetBorders(false).SetSelectable(false, true).Clear()
-						text := fmt.Sprintf("What to do with [%s]%s[white]?", getTypeColorString(card), card.Building.Name)
-						actionsFrame.Clear().AddText(text, true, tview.AlignCenter, tcell.ColorWhite)
-						actions.SetCell(0, 0, tview.NewTableCell("Build"))
-						actions.SetCell(0, 1, tview.NewTableCell("Destroy"))
-						actions.SetCell(0, 2, tview.NewTableCell("Wonder"))
-						view.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-							switch event.Rune() {
-							case 't':
-								actionsFrame.Clear()
-							}
-							return event
-						})
-					*/
+					if buyable { // check if player can construct the card
+						var subtext string
+						if free || coins <= 0 {
+							subtext = "[white]You can build for free"
+						} else {
+							subtext = fmt.Sprintf("[white]You have to spend [yellow]%d[white] extra coins", coins)
+						}
+						actions.AddItem(fmt.Sprintf("Construct %s", text), subtext, 'c', func() {})
+					}
+					actions.AddItem(fmt.Sprintf("Discard %s", text), fmt.Sprintf("[white]You will earn [yellow]%d[white] coins", sellIncome), 'd', func() {})
+					actions.AddItem(fmt.Sprintf("Use %s to construct a Wonder", text), "", 'w', func() {})
 				})
 				row++
 			}

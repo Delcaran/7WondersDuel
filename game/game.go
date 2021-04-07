@@ -3,7 +3,6 @@ package game
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -147,7 +146,7 @@ func (p *player) calculatePrices(opponent *player) cost {
 	return Prices
 }
 
-func (p *player) calculateSellIncome() int {
+func (p *player) CalculateSellIncome() int {
 	var Coins int
 	Coins = 2
 	for _, b := range p.Buildings {
@@ -158,7 +157,7 @@ func (p *player) calculateSellIncome() int {
 	return Coins
 }
 
-func (p *player) calculateBuyingCost(b *building, opponent *player) (bool, bool, int) {
+func (p *player) CalculateBuyingCost(b *building, opponent *player) (bool, bool, int) {
 	var MissingResources cost
 	// check links for free building
 	for _, l := range p.Links {
@@ -289,29 +288,6 @@ func (b *board) CardBlocked(c *Card) bool {
 		}
 	}
 	return blocked
-}
-func (b *board) debugPrint() {
-	for y := 0; y <= b.YMax; y++ {
-		for x := 0; x < b.XMax; x++ {
-			if x != 0 {
-				fmt.Printf(" ")
-			}
-			card := b.Cards[y][x]
-			if card.Building != nil {
-				format := "%s"
-				if !card.Visible {
-					format = "?%s?"
-				}
-				if b.CardBlocked(&card) {
-					format = fmt.Sprintf("#%s#", format)
-				}
-				fmt.Printf(format, card.Building.ID)
-			} else {
-				fmt.Printf("*")
-			}
-		}
-		fmt.Printf("\n")
-	}
 }
 
 // Game contains all the information required to play

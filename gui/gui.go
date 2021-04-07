@@ -165,6 +165,15 @@ func appendValue(text *string, value int, color string) int {
 	return value
 }
 
+func appendBlock(text *string, block string) {
+	if len(block) > 0 {
+		if len(*text) > 0 {
+			*text = fmt.Sprintf("%s - ", *text)
+		}
+		*text = fmt.Sprintf("%s%s", *text, block)
+	}
+}
+
 func getBuildingSummary(card *game.Card) string {
 	var txtCost, txtProd, txtOTOG string
 	cost := card.Building.Cost
@@ -209,44 +218,33 @@ func getBuildingSummary(card *game.Card) string {
 		txtOTOG = fmt.Sprintf("[white]G:%s[white]", txtOTOG)
 	}
 
-	text := txtCost
-	if len(txtProd) > 0 {
-		if len(text) > 0 {
-			text = fmt.Sprintf("%s - ", text)
-		}
-		text = fmt.Sprintf("%s%s", text, txtProd)
-	}
-	if len(txtOTOG) > 0 {
-		if len(text) > 0 {
-			text = fmt.Sprintf("%s - ", text)
-		}
-		text = fmt.Sprintf("%s%s", text, txtOTOG)
-	}
+	txtScience := ""
 	if len(card.Building.Science) > 0 {
-		if len(text) > 0 {
-			text = fmt.Sprintf("%s - ", text)
-		}
-		text = fmt.Sprintf("%sS:[green]%s[white]", text, card.Building.Science)
+		txtScience = fmt.Sprintf("S:[green]%s[white]", card.Building.Science)
 	}
+
+	txtTrade := ""
 	if len(card.Building.Trade) > 0 {
-		if len(text) > 0 {
-			text = fmt.Sprintf("%s - ", text)
-		}
-		txtTrade := ""
 		for _, t := range card.Building.Trade {
 			if len(txtTrade) > 0 {
 				txtTrade = fmt.Sprintf("%s,", txtTrade)
 			}
 			txtTrade = fmt.Sprintf("%s[goldenrod]%s[white]", txtTrade, t)
 		}
-		text = fmt.Sprintf("%s[white]T:%s", text, txtTrade)
+		txtTrade = fmt.Sprintf("T:%s", txtTrade)
 	}
+
+	txtLinks := ""
 	if len(card.Building.Links) > 0 {
-		if len(text) > 0 {
-			text = fmt.Sprintf("%s - ", text)
-		}
-		text = fmt.Sprintf("%sB:%s", text, card.Building.Links)
+		txtLinks = fmt.Sprintf("B:%s", card.Building.Links)
 	}
+
+	text := txtCost
+	appendBlock(&text, txtProd)
+	appendBlock(&text, txtOTOG)
+	appendBlock(&text, txtScience)
+	appendBlock(&text, txtTrade)
+	appendBlock(&text, txtLinks)
 
 	return text
 }

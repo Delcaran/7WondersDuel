@@ -8,8 +8,8 @@ import (
 type wonder struct {
 	ID           string
 	Name         string
-	Production   production
-	Construction construction
+	Production   production   // perpetual gains
+	Construction construction // one-time-only gains
 	Cost         cost
 	TokenChoice  tokenChoice
 }
@@ -35,8 +35,8 @@ type building struct {
 	Name         string
 	Type         string
 	Cost         cost
-	Production   production
-	Construction construction
+	Production   production   // perpetual gains
+	Construction construction // one-time-only gains
 	Bonus        bonus
 	Trade        []string
 	CreationLink string

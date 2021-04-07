@@ -145,7 +145,7 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tvie
 	}
 }
 
-func calculateBuildingCost(g *game.Game, card *game.Card) (bool, bool, int) {
+func evaluateBuildability(g *game.Game, card *game.Card) (bool, bool, int) {
 	otherPlayer := 0
 	if g.CurrentPlayer == otherPlayer {
 		otherPlayer = 1
@@ -153,6 +153,90 @@ func calculateBuildingCost(g *game.Game, card *game.Card) (bool, bool, int) {
 
 	buyable, free, coins := g.Players[g.CurrentPlayer].CalculateBuyingCost(card.Building, &g.Players[otherPlayer])
 	return buyable, free, coins
+}
+
+func appendValue(text *string, value int, color string) int {
+	if value > 0 {
+		if len(*text) > 0 {
+			*text = fmt.Sprintf("%s,", *text)
+		}
+		*text = fmt.Sprintf("%s[%s]%d[white]", *text, color, value)
+	}
+	return value
+}
+
+func getBuildingSummary(card *game.Card) string {
+	var txtCost, txtProd, txtOTOG string
+	cost := card.Building.Cost
+	prod := card.Building.Production
+	otog := card.Building.Construction
+
+	totCost := 0
+	totCost += appendValue(&txtCost, cost.Coins, "yellow")
+	totCost += appendValue(&txtCost, cost.Wood, "brown")
+	totCost += appendValue(&txtCost, cost.Stone, "grey")
+	totCost += appendValue(&txtCost, cost.Clay, "orange")
+	totCost += appendValue(&txtCost, cost.Glass, "lightblue")
+	totCost += appendValue(&txtCost, cost.Papyrus, "goldenrod")
+	// TODO: links
+	if totCost > 0 {
+		txtCost = fmt.Sprintf("[white]C: %s[white]", txtCost)
+	}
+
+	totProd := 0
+	totProd += appendValue(&txtProd, prod.Wood, "brown")
+	totProd += appendValue(&txtProd, prod.Stone, "grey")
+	totProd += appendValue(&txtProd, prod.Clay, "orange")
+	totProd += appendValue(&txtProd, prod.Glass, "lightblue")
+	totProd += appendValue(&txtProd, prod.Papyrus, "goldenrod")
+	totProd += appendValue(&txtProd, prod.Shield, "red")
+	// TODO: casi speciali
+	if totProd > 0 {
+		txtProd = fmt.Sprintf("[white]P: %s[white]", txtProd)
+	}
+
+	totOTOG := 0
+	totOTOG += appendValue(&txtOTOG, otog.Coins, "yellow")
+	totOTOG += appendValue(&txtOTOG, card.Building.Points, "blue")
+	// TODO: casi speciali
+	if totOTOG > 0 {
+		txtOTOG = fmt.Sprintf("[white]G: %s[white]", txtOTOG)
+	}
+
+	text := txtCost
+	if len(txtProd) > 0 {
+		if len(text) > 0 {
+			text = fmt.Sprintf("%s - ", text)
+		}
+		text = fmt.Sprintf("%s%s", text, txtProd)
+	}
+	if len(txtOTOG) > 0 {
+		if len(text) > 0 {
+			text = fmt.Sprintf("%s - ", text)
+		}
+		text = fmt.Sprintf("%s%s", text, txtOTOG)
+	}
+	if len(card.Building.Science) > 0 {
+		if len(text) > 0 {
+			text = fmt.Sprintf("%s - ", text)
+		}
+		text = fmt.Sprintf("%sS: [green]%s[white]", text, card.Building.Science)
+	}
+	if len(card.Building.Trade) > 0 {
+		if len(text) > 0 {
+			text = fmt.Sprintf("%s - ", text)
+		}
+		txtTrade := ""
+		for _, t := range card.Building.Trade {
+			if len(txtTrade) > 0 {
+				txtTrade = fmt.Sprintf("%s,", txtTrade)
+			}
+			txtTrade = fmt.Sprintf("%s[goldenrod]%s[white]", txtTrade, t)
+		}
+		text = fmt.Sprintf("%s[white]T: %s", text, txtTrade)
+	}
+
+	return text
 }
 
 func fillActions(g *game.Game, view *tview.List, actions *tview.List, actionsFrame *tview.Frame) {
@@ -165,9 +249,9 @@ func fillActions(g *game.Game, view *tview.List, actions *tview.List, actionsFra
 			card := g.Board.Cards[r][c]
 			if card.Visible && !g.Board.CardBlocked(&card) {
 				text := fmt.Sprintf("[%s]%s[white]", getTypeColorString(&card), card.Building.Name)
-				buyable, free, coins := calculateBuildingCost(g, &card)
+				buyable, free, coins := evaluateBuildability(g, &card)
 				sellIncome := g.Players[g.CurrentPlayer].CalculateSellIncome()
-				view.AddItem(text, "", cardRunes[row], func() {
+				view.AddItem(text, getBuildingSummary(&card), cardRunes[row], func() {
 					actions.Clear()
 					if buyable { // check if player can construct the card
 						var subtext string

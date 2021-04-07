@@ -161,7 +161,7 @@ func (p *player) CalculateBuyingCost(b *building, opponent *player) (bool, bool,
 	var MissingResources cost
 	// check links for free building
 	for _, l := range p.Links {
-		if l == b.CreationLink {
+		if l == b.Linked {
 			return true, true, 0 // Buyable?, Free?, Coins
 		}
 	}

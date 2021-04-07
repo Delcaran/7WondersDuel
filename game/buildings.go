@@ -39,8 +39,8 @@ type building struct {
 	Construction construction // one-time-only gains
 	Bonus        bonus
 	Trade        []string
-	CreationLink string
-	CreatedLink  string
+	Linked       string // sfrutta questa catena
+	Links        string // crea questa catena
 	Points       int
 	Science      string
 }

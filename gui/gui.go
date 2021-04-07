@@ -180,7 +180,13 @@ func getBuildingSummary(card *game.Card) string {
 	totCost += appendValue(&txtCost, cost.Papyrus, "goldenrod")
 	// TODO: links
 	if totCost > 0 {
-		txtCost = fmt.Sprintf("[white]C: %s[white]", txtCost)
+		txtCost = fmt.Sprintf("[white]C:%s[white]", txtCost)
+	}
+	if len(card.Building.Linked) > 0 {
+		if len(txtCost) > 0 {
+			txtCost = fmt.Sprintf("%s/", txtCost)
+		}
+		txtCost = fmt.Sprintf("%s%s", txtCost, card.Building.Linked)
 	}
 
 	totProd := 0
@@ -192,7 +198,7 @@ func getBuildingSummary(card *game.Card) string {
 	totProd += appendValue(&txtProd, prod.Shield, "red")
 	// TODO: casi speciali
 	if totProd > 0 {
-		txtProd = fmt.Sprintf("[white]P: %s[white]", txtProd)
+		txtProd = fmt.Sprintf("[white]P:%s[white]", txtProd)
 	}
 
 	totOTOG := 0
@@ -200,7 +206,7 @@ func getBuildingSummary(card *game.Card) string {
 	totOTOG += appendValue(&txtOTOG, card.Building.Points, "blue")
 	// TODO: casi speciali
 	if totOTOG > 0 {
-		txtOTOG = fmt.Sprintf("[white]G: %s[white]", txtOTOG)
+		txtOTOG = fmt.Sprintf("[white]G:%s[white]", txtOTOG)
 	}
 
 	text := txtCost
@@ -220,7 +226,7 @@ func getBuildingSummary(card *game.Card) string {
 		if len(text) > 0 {
 			text = fmt.Sprintf("%s - ", text)
 		}
-		text = fmt.Sprintf("%sS: [green]%s[white]", text, card.Building.Science)
+		text = fmt.Sprintf("%sS:[green]%s[white]", text, card.Building.Science)
 	}
 	if len(card.Building.Trade) > 0 {
 		if len(text) > 0 {
@@ -233,7 +239,13 @@ func getBuildingSummary(card *game.Card) string {
 			}
 			txtTrade = fmt.Sprintf("%s[goldenrod]%s[white]", txtTrade, t)
 		}
-		text = fmt.Sprintf("%s[white]T: %s", text, txtTrade)
+		text = fmt.Sprintf("%s[white]T:%s", text, txtTrade)
+	}
+	if len(card.Building.Links) > 0 {
+		if len(text) > 0 {
+			text = fmt.Sprintf("%s - ", text)
+		}
+		text = fmt.Sprintf("%sB:%s", text, card.Building.Links)
 	}
 
 	return text

@@ -3,7 +3,9 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
+	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
@@ -354,7 +356,15 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 					}
 					actions.AddItem(fmt.Sprintf("Discard %s", text), fmt.Sprintf("[white]You will earn [yellow]%d[white] coins", sellIncome), 'd', func() {
 						g.Discard(&card)
+						f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+						if err != nil {
+							log.Fatalf("error opening file: %v", err)
+						}
+						defer f.Close()
+						log.SetOutput(f)
+						log.Println("Before refresh")
 						refresh(g, gui)
+						log.Println("After refresh")
 					})
 					actions.AddItem(fmt.Sprintf("Use %s to construct a Wonder", text), "", 'w', func() {})
 				})

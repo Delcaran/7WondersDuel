@@ -12,14 +12,14 @@ A text only implementation of the 7 Wonders Duel boardgame.
 
 ## Roadmap
 
-Development phases will be the following:
+These features are considered essential for the game
 
-1. [X] Definition of every entity involved in the game
-2. [ ] Definition of relationships between identities
-3. [ ] Implementation of interactions between entities
-4. [ ] User interface
-5. [ ] Local game with both players taking turns.
-6. [ ] LAN game
+- [ ] Definition of every entity involved in the game
+- [ ] Definition of relationships between identities
+- [ ] Implementation of interactions between entities
+- [ ] User interface
+- [ ] Local game with both players taking turns.
+- [ ] LAN game
 
 ## Further steps
 

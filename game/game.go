@@ -290,6 +290,15 @@ func (b *board) CardBlocked(c *Card) bool {
 	return blocked
 }
 
+func (b *board) removeCard(c *Card) {
+	b.Cards[c.Position.Y][c.Position.X] = Card{}
+
+	unblocked := b.cardBlocks(c)
+	for _, u := range unblocked {
+		u.Visible = true
+	}
+}
+
 // Game contains all the information required to play
 type Game struct {
 	CurrentRound    int
@@ -393,4 +402,27 @@ func (g *Game) DeployBoard() {
 		}
 	}
 	g.Board = loadBoardLayout(g.CurrentAge, &g.BoxContent)
+}
+
+func (g *Game) endRound() {
+	g.CurrentRound++
+	if g.CurrentPlayer == 0 {
+		g.CurrentPlayer = 1
+	} else {
+		g.CurrentPlayer = 0
+	}
+}
+
+// Construct acts when the current player wants to build a card
+func (g *Game) Construct(card *Card) {
+
+}
+
+// Discard acts when the current player discards a card from the board
+func (g *Game) Discard(card *Card) {
+	player := &g.Players[g.CurrentPlayer]
+	player.Coins += player.CalculateSellIncome()
+	player.Buildings = append(player.Buildings, *card.Building)
+	g.Board.removeCard(card)
+	g.endRound()
 }

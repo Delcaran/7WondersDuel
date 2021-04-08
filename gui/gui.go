@@ -3,11 +3,7 @@ package gui
 import (
 	"7WondersDuel/game"
 	"fmt"
-	"log"
-	"math/rand"
-	"os"
 	"strconv"
-	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -61,13 +57,13 @@ func getTypeColorString(card *game.Card) string {
 
 // Print the board just for reference. All action will be made from right panel
 func fillBoardTable(game *game.Game, boardTable *tview.Table) {
-	boardTable = boardTable.Clear().SetBorders(false).SetSelectable(false, false)
+	boardTable.Clear().SetBorders(false).SetSelectable(false, false)
 	subRows := 0
 	maxSubrows := 4
 	for r := 0; r <= game.Board.YMax; r++ {
 		for c := 0; c < game.Board.XMax; c++ {
 			card := &game.Board.Cards[r][c]
-			if card.Building != nil {
+			if !card.Picked && card.Building != nil {
 				cardName := "XXXXXXXXXX"
 				var color, bgColor tcell.Color
 				if card.Visible {
@@ -93,7 +89,7 @@ func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 					color = bgColor
 				}
 				cell := tview.NewTableCell(cardName).SetAlign(tview.AlignCenter).SetTextColor(color).SetBackgroundColor(bgColor)
-				boardTable = boardTable.SetCell(r+subRows, c, cell)
+				boardTable.SetCell(r+subRows, c, cell)
 				for subRow := 1; subRow <= maxSubrows; subRow++ {
 					var subCellText string
 					align := tview.AlignCenter
@@ -138,7 +134,7 @@ func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 					if !card.Visible {
 						subCell.SetBackgroundColor(bgColor)
 					}
-					boardTable = boardTable.SetCell(r+subRows+subRow, c, subCell)
+					boardTable.SetCell(r+subRows+subRow, c, subCell)
 				}
 			}
 		}
@@ -337,13 +333,14 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 	view.Clear()
 	for r := 0; r <= g.Board.YMax; r++ {
 		for c := 0; c < g.Board.XMax; c++ {
-			card := g.Board.Cards[r][c]
-			if card.Visible && !g.Board.CardBlocked(&card) {
+			card := &g.Board.Cards[r][c]
+			if !card.Picked && card.Visible && !g.Board.CardBlocked(card) {
 				actions := gui.actionsList
-				text := fmt.Sprintf("[%s]%s[white]", getTypeColorString(&card), card.Building.Name)
-				buyable, free, coins := evaluateBuildability(g, &card)
+				text := fmt.Sprintf("[%s]%s[white]", getTypeColorString(card), card.Building.Name)
+				buyable, free, coins := evaluateBuildability(g, card)
 				sellIncome := g.Players[g.CurrentPlayer].CalculateSellIncome()
-				view.AddItem(text, getBuildingSummary(&card), cardRunes[row], func() {
+				view.AddItem(text, getBuildingSummary(card), cardRunes[row], func() {
+					gui.app.SetFocus(actions)
 					actions.Clear()
 					if buyable { // check if player can construct the card
 						var subtext string
@@ -352,21 +349,14 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 						} else {
 							subtext = fmt.Sprintf("[white]You can build spending [yellow]%d[white] coins", coins)
 						}
-						actions.AddItem(fmt.Sprintf("Construct %s", text), subtext, 'c', func() {})
+						actions.AddItem(fmt.Sprintf("Construct %s", text), subtext, 'c', nil)
 					}
 					actions.AddItem(fmt.Sprintf("Discard %s", text), fmt.Sprintf("[white]You will earn [yellow]%d[white] coins", sellIncome), 'd', func() {
-						g.Discard(&card)
-						f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-						if err != nil {
-							log.Fatalf("error opening file: %v", err)
-						}
-						defer f.Close()
-						log.SetOutput(f)
-						log.Println("Before refresh")
+						g.Discard(card)
+						actions.Clear()
 						refresh(g, gui)
-						log.Println("After refresh")
 					})
-					actions.AddItem(fmt.Sprintf("Use %s to construct a Wonder", text), "", 'w', func() {})
+					actions.AddItem(fmt.Sprintf("Use %s to construct a Wonder", text), "", 'w', nil)
 				})
 				row++
 			}
@@ -378,11 +368,25 @@ func refresh(game *game.Game, gui *componentsGUI) {
 	if game.CurrentAge > 3 {
 		gui.app.Stop()
 	} else {
-		if game.CurrentPlayer > 0 {
-			game.CurrentPlayer = 0
-		} else {
-			game.CurrentPlayer = 1
-		}
+		gui.app.SetRoot(gui.main, true)
+		gui.app.SetFocus(gui.activeCardsList)
+
+		gui.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			// BEGIN DEBUG FUNCTIONALITY
+			switch event.Rune() {
+			case 'n':
+				game.CurrentAge++
+				refresh(game, gui)
+			case 'q':
+				gui.app.Stop()
+			case 'c':
+				game.Players[0].Coins += 2
+				refresh(game, gui)
+			}
+			// END DEBUG FUNCTIONALITY
+			return event
+		})
+
 		game.DeployBoard()
 		title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
 		titleColor := tcell.ColorWhite
@@ -433,33 +437,10 @@ func Gui(game *game.Game) *tview.Application {
 	myGUI.mainFlex.AddItem(myGUI.mainRight, 0, 1, true) // "USABLE CARDS" has focus because all commands start from here
 	myGUI.main = tview.NewFrame(myGUI.mainFlex)
 
-	myGUI.app.SetRoot(myGUI.main, true)
-	myGUI.app.SetFocus(myGUI.activeCardsList)
-
-	myGUI.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		// BEGIN DEBUG FUNCTIONALITY
-		switch event.Rune() {
-		case 'n':
-			game.CurrentAge++
-			refresh(game, &myGUI)
-		case 'q':
-			myGUI.app.Stop()
-		case 'c':
-			game.Players[0].Coins += 2
-			refresh(game, &myGUI)
-		}
-		// END DEBUG FUNCTIONALITY
-		return event
-	})
-
 	// GUI done, it's time to play
 
 	// initialization
-	rand.Seed(time.Now().UnixNano())
-	game.CurrentAge = 1
-	game.CurrentPlayer = rand.Intn(2)
 	refresh(game, &myGUI)
-	game.CurrentRound = 1
 
 	return myGUI.app
 }

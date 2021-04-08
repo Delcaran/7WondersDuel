@@ -238,6 +238,7 @@ type position struct {
 type Card struct {
 	Building *building
 	Visible  bool
+	Picked   bool
 	Position position
 }
 
@@ -247,22 +248,22 @@ type board struct {
 	YMax  int
 }
 
-func (b *board) cardBlocks(c *Card) [2]*Card {
+func (b *board) cardBlocks(c *Card) []*Card {
 	left := c.Position.X - 1
 	right := c.Position.X + 1
 	line := c.Position.Y - 1
 
-	var blocked [2]*Card
+	var blocked []*Card
 
 	if line >= 0 && line <= b.YMax {
 		if left >= 0 && left <= b.XMax {
 			if b.Cards[line][left].Building != nil {
-				blocked[0] = &b.Cards[line][left]
+				blocked = append(blocked, &b.Cards[line][left])
 			}
 		}
 		if right >= 0 && right <= b.XMax {
 			if b.Cards[line][right].Building != nil {
-				blocked[1] = &b.Cards[line][right]
+				blocked = append(blocked, &b.Cards[line][right])
 			}
 		}
 	}
@@ -277,12 +278,12 @@ func (b *board) CardBlocked(c *Card) bool {
 
 	if line >= 0 && line <= b.YMax {
 		if left >= 0 && left < b.XMax {
-			if b.Cards[line][left].Building != nil {
+			if b.Cards[line][left].Building != nil && !b.Cards[line][left].Picked {
 				blocked = true
 			}
 		}
 		if right >= 0 && right < b.XMax {
-			if b.Cards[line][right].Building != nil {
+			if b.Cards[line][right].Building != nil && !b.Cards[line][right].Picked {
 				blocked = true
 			}
 		}
@@ -291,11 +292,13 @@ func (b *board) CardBlocked(c *Card) bool {
 }
 
 func (b *board) removeCard(c *Card) {
-	b.Cards[c.Position.Y][c.Position.X] = Card{}
-
-	unblocked := b.cardBlocks(c)
-	for _, u := range unblocked {
-		u.Visible = true
+	c.Picked = true
+	c.Visible = false
+	blocked := b.cardBlocks(c)
+	for _, u := range blocked {
+		if !b.CardBlocked(u) {
+			u.Visible = true
+		}
 	}
 }
 
@@ -368,6 +371,7 @@ func loadBoardLayout(age int, data *gameContent) board {
 				newLine := make([]Card, newBoard.XMax)
 				for c := 0; c < lenght; c++ {
 					newLine[c].Building = nil
+					newLine[c].Picked = false
 					if text[c] != ' ' {
 						newLine[c].Building = &ageDeck.Buildings[lastCard]
 						newLine[c].Position.X = c
@@ -390,6 +394,9 @@ func loadBoardLayout(age int, data *gameContent) board {
 func (g *Game) DeployBoard() {
 	if g.CurrentRound == 0 {
 		var err error
+		rand.Seed(time.Now().UnixNano())
+		g.CurrentAge = 1
+		g.CurrentPlayer = rand.Intn(2)
 		g.BoxContent, err = loadGameContent()
 		if err != nil {
 			log.Fatal(err)
@@ -400,8 +407,9 @@ func (g *Game) DeployBoard() {
 			g.BoxContent.Coins -= 7
 			g.Players[p].Coins = 7
 		}
+		g.CurrentRound++
+		g.Board = loadBoardLayout(g.CurrentAge, &g.BoxContent)
 	}
-	g.Board = loadBoardLayout(g.CurrentAge, &g.BoxContent)
 }
 
 func (g *Game) endRound() {
@@ -422,7 +430,6 @@ func (g *Game) Construct(card *Card) {
 func (g *Game) Discard(card *Card) {
 	player := &g.Players[g.CurrentPlayer]
 	player.Coins += player.CalculateSellIncome()
-	player.Buildings = append(player.Buildings, *card.Building)
 	g.Board.removeCard(card)
 	g.endRound()
 }

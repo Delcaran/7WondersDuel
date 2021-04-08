@@ -60,43 +60,87 @@ func getTypeColorString(card *game.Card) string {
 // Print the board just for reference. All action will be made from right panel
 func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 	boardTable = boardTable.Clear().SetBorders(false).SetSelectable(false, false)
+	subRows := 0
+	maxSubrows := 4
 	for r := 0; r <= game.Board.YMax; r++ {
 		for c := 0; c < game.Board.XMax; c++ {
-			card := game.Board.Cards[r][c]
+			card := &game.Board.Cards[r][c]
 			if card.Building != nil {
 				cardName := "XXXXXXXXXX"
-				color := tcell.ColorWhite
+				var color, bgColor tcell.Color
 				if card.Visible {
-					cardName = card.Building.Name
-					color = getTypeColor(&card)
-				}
-				cell := tview.NewTableCell(cardName).
-					SetTextColor(color).
-					SetAlign(tview.AlignCenter)
-				bgColor := tcell.ColorWhite
-				if !game.Board.CardBlocked(&card) {
-					cell.SetBackgroundColor(bgColor)
-				} else {
-					if !card.Visible {
-						switch game.CurrentAge {
-						case 1:
-							bgColor = tcell.ColorDarkGoldenrod
-						case 2:
-							bgColor = tcell.ColorLightBlue
-						case 3:
-							bgColor = tcell.ColorViolet
-							if card.Building.Type == "guild" {
-								bgColor = tcell.ColorPurple
-							}
-						default:
-							bgColor = tcell.ColorWhite
-						}
-						cell.SetTextColor(bgColor).SetBackgroundColor(bgColor)
+					cardName = fmt.Sprintf("[::b]%s[-:-:-]", card.Building.Name)
+					color = getTypeColor(card)
+					if !game.Board.CardBlocked(card) {
+						bgColor = tcell.ColorWhite
 					}
+				} else {
+					switch game.CurrentAge {
+					case 1:
+						bgColor = tcell.ColorDarkGoldenrod
+					case 2:
+						bgColor = tcell.ColorLightBlue
+					case 3:
+						bgColor = tcell.ColorViolet
+						if card.Building.Type == "guild" {
+							bgColor = tcell.ColorPurple
+						}
+					default:
+						bgColor = tcell.ColorWhite
+					}
+					color = bgColor
 				}
-				boardTable = boardTable.SetCell(r, c, cell)
+				cell := tview.NewTableCell(cardName).SetAlign(tview.AlignCenter).SetTextColor(color).SetBackgroundColor(bgColor)
+				boardTable = boardTable.SetCell(r+subRows, c, cell)
+				for subRow := 1; subRow <= maxSubrows; subRow++ {
+					var subCellText string
+					align := tview.AlignCenter
+					if card.Visible {
+						switch subRow {
+						case 1: // typical output for this kind of card
+							switch card.Building.Type {
+							case "raw":
+								subCellText = getBuildingProduction(card)
+							case "manufactured":
+								subCellText = getBuildingProduction(card)
+							case "commercial":
+								subCellText = getBuildingTrade(card)
+							case "military":
+								subCellText = fmt.Sprintf("Shields: [red]%d[white]", card.Building.Production.Shield)
+							case "guild":
+								subCellText = "TODO"
+							case "civilian":
+								subCellText = getBuildingOTOG(card)
+							case "scientific":
+								subCellText = getBuildingScience(card)
+							default:
+								subCellText = ""
+							}
+						case 2: // extra output
+							subCellText = getBuildingLinks(card)
+							if card.Building.Type != "civilian" {
+								subCellText = fmt.Sprintf("%s %s", subCellText, getBuildingOTOG(card))
+							}
+							align = tview.AlignRight
+						case 3:
+							subCellText = getBuildingCost(card)
+							align = tview.AlignLeft
+						case 4:
+							if len(card.Building.Linked) > 0 {
+								subCellText = card.Building.Linked
+							}
+							align = tview.AlignLeft
+						}
+					}
+					subCell := tview.NewTableCell(subCellText).SetAlign(align)
+					if !card.Visible {
+						subCell.SetBackgroundColor(bgColor)
+					}
+					boardTable = boardTable.SetCell(r+subRows+subRow, c, subCell)
+				}
 			}
 		}
+		subRows += maxSubrows
 	}
 }
 
@@ -112,7 +156,7 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tvie
 		textColor = "red"
 	}
 	if player == g.CurrentPlayer {
-		flags = "u"
+		flags = "b"
 	}
 	fulltext := fmt.Sprintf("[%s::%s]%s[white]", textColor, flags, text)
 	frame.Clear().AddText(fulltext, true, tview.AlignCenter, tcell.ColorWhite)
@@ -174,12 +218,9 @@ func appendBlock(text *string, block string) {
 	}
 }
 
-func getBuildingSummary(card *game.Card) string {
-	var txtCost, txtProd, txtOTOG string
+func getBuildingCost(card *game.Card) string {
 	cost := card.Building.Cost
-	prod := card.Building.Production
-	otog := card.Building.Construction
-
+	var txtCost string
 	totCost := 0
 	totCost += appendValue(&txtCost, cost.Coins, "yellow")
 	totCost += appendValue(&txtCost, cost.Wood, "brown")
@@ -187,17 +228,15 @@ func getBuildingSummary(card *game.Card) string {
 	totCost += appendValue(&txtCost, cost.Clay, "orange")
 	totCost += appendValue(&txtCost, cost.Glass, "lightblue")
 	totCost += appendValue(&txtCost, cost.Papyrus, "goldenrod")
-	// TODO: links
 	if totCost > 0 {
 		txtCost = fmt.Sprintf("[white]C:%s[white]", txtCost)
 	}
-	if len(card.Building.Linked) > 0 {
-		if len(txtCost) > 0 {
-			txtCost = fmt.Sprintf("%s/", txtCost)
-		}
-		txtCost = fmt.Sprintf("%s%s", txtCost, card.Building.Linked)
-	}
+	return txtCost
+}
 
+func getBuildingProduction(card *game.Card) string {
+	prod := card.Building.Production
+	var txtProd string
 	totProd := 0
 	totProd += appendValue(&txtProd, prod.Wood, "brown")
 	totProd += appendValue(&txtProd, prod.Stone, "grey")
@@ -209,20 +248,10 @@ func getBuildingSummary(card *game.Card) string {
 	if totProd > 0 {
 		txtProd = fmt.Sprintf("[white]P:%s[white]", txtProd)
 	}
+	return txtProd
+}
 
-	totOTOG := 0
-	totOTOG += appendValue(&txtOTOG, otog.Coins, "yellow")
-	totOTOG += appendValue(&txtOTOG, card.Building.Points, "blue")
-	// TODO: casi speciali
-	if totOTOG > 0 {
-		txtOTOG = fmt.Sprintf("[white]G:%s[white]", txtOTOG)
-	}
-
-	txtScience := ""
-	if len(card.Building.Science) > 0 {
-		txtScience = fmt.Sprintf("S:[green]%s[white]", card.Building.Science)
-	}
-
+func getBuildingTrade(card *game.Card) string {
 	txtTrade := ""
 	if len(card.Building.Trade) > 0 {
 		for _, t := range card.Building.Trade {
@@ -233,11 +262,52 @@ func getBuildingSummary(card *game.Card) string {
 		}
 		txtTrade = fmt.Sprintf("T:%s", txtTrade)
 	}
+	return txtTrade
+}
 
+func getBuildingScience(card *game.Card) string {
+	txtScience := ""
+	if len(card.Building.Science) > 0 {
+		txtScience = fmt.Sprintf("S:[green]%s[white]", card.Building.Science)
+	}
+	return txtScience
+}
+
+func getBuildingOTOG(card *game.Card) string {
+	var txtOTOG string
+	otog := card.Building.Construction
+	totOTOG := 0
+	totOTOG += appendValue(&txtOTOG, otog.Coins, "yellow")
+	totOTOG += appendValue(&txtOTOG, card.Building.Points, "blue")
+	// TODO: casi speciali
+	if totOTOG > 0 {
+		txtOTOG = fmt.Sprintf("[white]G:%s[white]", txtOTOG)
+	}
+	return txtOTOG
+}
+
+func getBuildingLinks(card *game.Card) string {
 	txtLinks := ""
 	if len(card.Building.Links) > 0 {
 		txtLinks = fmt.Sprintf("B:%s", card.Building.Links)
 	}
+	return txtLinks
+}
+
+func getBuildingSummary(card *game.Card) string {
+	txtCost := getBuildingCost(card)
+	if len(card.Building.Linked) > 0 {
+		if len(txtCost) > 0 {
+			txtCost = fmt.Sprintf("%s/", txtCost)
+		}
+		txtCost = fmt.Sprintf("%s%s", txtCost, card.Building.Linked)
+	}
+
+	txtProd := getBuildingProduction(card)
+	txtOTOG := getBuildingOTOG(card)
+	txtScience := getBuildingScience(card)
+	txtTrade := getBuildingTrade(card)
+	txtLinks := getBuildingLinks(card)
 
 	text := txtCost
 	appendBlock(&text, txtProd)
@@ -268,7 +338,7 @@ func fillActions(g *game.Game, view *tview.List, actions *tview.List, actionsFra
 						if free || coins <= 0 {
 							subtext = "[white]You can build for free"
 						} else {
-							subtext = fmt.Sprintf("[white]You have to spend [yellow]%d[white] extra coins", coins)
+							subtext = fmt.Sprintf("[white]You can build spending [yellow]%d[white] coins", coins)
 						}
 						actions.AddItem(fmt.Sprintf("Construct %s", text), subtext, 'c', func() {})
 					}

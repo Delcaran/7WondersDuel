@@ -145,19 +145,25 @@ func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tview.Frame) {
 	var text string
 	var textColor string
+	var borderColor tcell.Color
 	flags := "-"
 	if player == 0 {
 		text = "YOU"
 		textColor = "blue"
+		borderColor = tcell.ColorBlue
 	} else {
 		text = "OPPONENT"
 		textColor = "red"
+		borderColor = tcell.ColorRed
 	}
 	if player == g.CurrentPlayer {
 		flags = "b"
+		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrBold | tcell.AttrReverse)
+	} else {
+		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrDim)
 	}
 	fulltext := fmt.Sprintf("[%s::%s]%s[white]", textColor, flags, text)
-	frame.Clear().AddText(fulltext, true, tview.AlignCenter, tcell.ColorWhite)
+	frame.Clear().SetTitle(fulltext)
 	view.SetBorders(false).SetSelectable(false, false).Clear()
 	fixedRes, _ := g.Players[player].AvailableResources()
 	cText := 0
@@ -439,8 +445,8 @@ func Gui(game *game.Game) *tview.Application {
 	myGUI.boardTable = tview.NewTable()
 	myGUI.topFlex.AddItem(myGUI.boardTable, 0, 2, false)
 	myGUI.actionsFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore destra: carte disponibili e azioni
-	myGUI.topFlex.AddItem(myGUI.actionsFlex, 0, 1, false)
 	myGUI.actionsFrame = tview.NewFrame(myGUI.actionsFlex)
+	myGUI.topFlex.AddItem(myGUI.actionsFrame, 0, 1, false)
 	myGUI.activeCardsList = tview.NewList()
 	myGUI.actionsList = tview.NewList()
 	myGUI.actionsFlex.AddItem(myGUI.activeCardsList, 0, 1, true)
@@ -455,11 +461,13 @@ func Gui(game *game.Game) *tview.Application {
 	myGUI.bottomFlex.AddItem(myGUI.opponentInfoFrame, 0, 1, false)
 
 	myGUI.mainFlex = tview.NewFlex().SetDirection(tview.FlexRow)
-	myGUI.main = tview.NewFrame(myGUI.mainFlex)
 	myGUI.mainFlex.AddItem(myGUI.topFlex, 0, 1, false)
 	myGUI.mainFlex.AddItem(myGUI.bottomFlex, 0, 1, false)
 
-	myGUI.actionsFrame.SetBorder(true).SetTitle("COMMANDS").SetTitleAlign(tview.AlignCenter).SetTitleColor(tcell.ColorWhite)
+	myGUI.main = tview.NewFrame(myGUI.mainFlex)
+
+	myGUI.actionsFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter).SetTitleColor(tcell.ColorWhite)
+	myGUI.actionsFrame.SetTitle("COMMANDS")
 	myGUI.youInfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
 	myGUI.opponentInfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
 

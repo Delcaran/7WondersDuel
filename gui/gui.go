@@ -434,14 +434,13 @@ func refresh(game *game.Game, gui *componentsGUI) {
 func Gui(game *game.Game) *tview.Application {
 	// create components & layout
 	var myGUI componentsGUI
-	myGUI.app = tview.NewApplication()
 
 	myGUI.topFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore: plancia e comandi
 	myGUI.boardTable = tview.NewTable()
 	myGUI.topFlex.AddItem(myGUI.boardTable, 0, 2, false)
 	myGUI.actionsFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore destra: carte disponibili e azioni
 	myGUI.topFlex.AddItem(myGUI.actionsFlex, 0, 1, false)
-	myGUI.actionsFrame = tview.NewFrame(myGUI.actionsFlex).AddText("COMMANDS", true, tview.AlignCenter, tcell.ColorWhite)
+	myGUI.actionsFrame = tview.NewFrame(myGUI.actionsFlex)
 	myGUI.activeCardsList = tview.NewList()
 	myGUI.actionsList = tview.NewList()
 	myGUI.actionsFlex.AddItem(myGUI.activeCardsList, 0, 1, true)
@@ -460,6 +459,11 @@ func Gui(game *game.Game) *tview.Application {
 	myGUI.mainFlex.AddItem(myGUI.topFlex, 0, 1, false)
 	myGUI.mainFlex.AddItem(myGUI.bottomFlex, 0, 1, false)
 
+	myGUI.actionsFrame.SetBorder(true).SetTitle("COMMANDS").SetTitleAlign(tview.AlignCenter).SetTitleColor(tcell.ColorWhite)
+	myGUI.youInfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
+	myGUI.opponentInfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
+
+	myGUI.app = tview.NewApplication()
 	// GUI done, it's time to play
 
 	// initialization

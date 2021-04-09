@@ -394,6 +394,7 @@ func refresh(game *game.Game, gui *componentsGUI) {
 			// BEGIN DEBUG FUNCTIONALITY
 			switch event.Rune() {
 			case 'n':
+				game.CurrentRound = 0
 				game.CurrentAge++
 				refresh(game, gui)
 			case 'q':
@@ -437,7 +438,7 @@ func Gui(game *game.Game) *tview.Application {
 
 	myGUI.topFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore: plancia e comandi
 	myGUI.boardTable = tview.NewTable()
-	myGUI.topFlex.AddItem(myGUI.boardTable, 0, 1, false)
+	myGUI.topFlex.AddItem(myGUI.boardTable, 0, 2, false)
 	myGUI.actionsFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore destra: carte disponibili e azioni
 	myGUI.topFlex.AddItem(myGUI.actionsFlex, 0, 1, false)
 	myGUI.actionsFrame = tview.NewFrame(myGUI.actionsFlex).AddText("COMMANDS", true, tview.AlignCenter, tcell.ColorWhite)

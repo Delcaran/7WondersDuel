@@ -46,8 +46,8 @@ type player struct {
 	Coins         int
 	BonusShields  int // in addition of those from buildings
 	MilitaryPower int
-	Wonders       []wonder
-	Buildings     []building
+	Wonders       []*wonder
+	Buildings     []*building
 	Links         []string
 	Tokens        []token
 }
@@ -92,10 +92,10 @@ func (p *player) AvailableResources() (production, []production) {
 	var toBeAnalized []*production
 	genericBuildings := []genericBuilding{}
 	for _, b := range p.Buildings {
-		genericBuildings = append(genericBuildings, &b)
+		genericBuildings = append(genericBuildings, b)
 	}
 	for _, w := range p.Wonders {
-		genericBuildings = append(genericBuildings, &w)
+		genericBuildings = append(genericBuildings, w)
 	}
 	for _, g := range genericBuildings {
 		in := g.getProduction()
@@ -243,9 +243,10 @@ type Card struct {
 }
 
 type board struct {
-	Cards [][]Card // [y][x]
-	XMax  int
-	YMax  int
+	Cards          [][]Card // [y][x]
+	AvailableCards int
+	XMax           int
+	YMax           int
 }
 
 func (b *board) cardBlocks(c *Card) []*Card {
@@ -256,12 +257,12 @@ func (b *board) cardBlocks(c *Card) []*Card {
 	var blocked []*Card
 
 	if line >= 0 && line <= b.YMax {
-		if left >= 0 && left <= b.XMax {
+		if left >= 0 && left < b.XMax {
 			if b.Cards[line][left].Building != nil {
 				blocked = append(blocked, &b.Cards[line][left])
 			}
 		}
-		if right >= 0 && right <= b.XMax {
+		if right >= 0 && right < b.XMax {
 			if b.Cards[line][right].Building != nil {
 				blocked = append(blocked, &b.Cards[line][right])
 			}
@@ -300,6 +301,7 @@ func (b *board) removeCard(c *Card) {
 			u.Visible = true
 		}
 	}
+	b.AvailableCards--
 }
 
 // Game contains all the information required to play
@@ -356,6 +358,7 @@ func loadBoardLayout(age int, data *gameContent) board {
 	lastCard := 0
 
 	var newBoard board
+	newBoard.AvailableCards = 0
 	for scanner.Scan() {
 		line++
 		text := scanner.Text()
@@ -371,9 +374,10 @@ func loadBoardLayout(age int, data *gameContent) board {
 				newLine := make([]Card, newBoard.XMax)
 				for c := 0; c < lenght; c++ {
 					newLine[c].Building = nil
-					newLine[c].Picked = false
 					if text[c] != ' ' {
 						newLine[c].Building = &ageDeck.Buildings[lastCard]
+						newLine[c].Picked = false
+						newBoard.AvailableCards++
 						newLine[c].Position.X = c
 						newLine[c].Position.Y = line
 						newLine[c].Visible = (text[c] == 'O') // uppercase letter o
@@ -392,38 +396,73 @@ func loadBoardLayout(age int, data *gameContent) board {
 
 // DeployBoard generates the layout for playing
 func (g *Game) DeployBoard() {
-	if g.CurrentRound == 0 {
+	if g.CurrentRound == 0 { // at beginning of each age
 		var err error
-		rand.Seed(time.Now().UnixNano())
-		g.CurrentAge = 1
-		g.CurrentPlayer = rand.Intn(2)
-		g.BoxContent, err = loadGameContent()
-		if err != nil {
-			log.Fatal(err)
+		if g.CurrentAge == 0 { // at beginning of game
+			rand.Seed(time.Now().UnixNano())
+			g.CurrentAge = 1
+			g.CurrentPlayer = rand.Intn(2)
+			g.BoxContent, err = loadGameContent()
+			if err != nil {
+				log.Fatal(err)
+			}
+			// Setup initial data
+			g.BoxContent.Coins = 14*1 + 10*3 + 7*6
+			for p := range g.Players {
+				g.BoxContent.Coins -= 7
+				g.Players[p].Coins = 7
+			}
+			g.CurrentRound++
 		}
-		// Setup initial data
-		g.BoxContent.Coins = 14*1 + 10*3 + 7*6
-		for p := range g.Players {
-			g.BoxContent.Coins -= 7
-			g.Players[p].Coins = 7
-		}
-		g.CurrentRound++
 		g.Board = loadBoardLayout(g.CurrentAge, &g.BoxContent)
 	}
 }
 
 func (g *Game) endRound() {
-	g.CurrentRound++
-	if g.CurrentPlayer == 0 {
-		g.CurrentPlayer = 1
+	if g.Board.AvailableCards == 0 {
+		g.CurrentAge++
+		g.CurrentRound = 0
+
+		p1idx := 0
+		p2idx := 1
+		p1 := &g.Players[p1idx]
+		p2 := &g.Players[p2idx]
+		var chooser int
+		if p1.MilitaryPower == p2.MilitaryPower {
+			// player who played last card chooses who begins next age
+			chooser = g.CurrentPlayer
+		} else {
+			// player with weaker military power chooses who begins next age
+			if p1.MilitaryPower < p2.MilitaryPower {
+				chooser = 0
+			} else {
+				chooser = 1
+			}
+		}
+		g.CurrentPlayer = chooser // TODO: per ora chi deve scegliere "sceglie" sempre se stesso, poi vedremo come fare
 	} else {
-		g.CurrentPlayer = 0
+		g.CurrentRound++
+		if g.CurrentPlayer == 0 {
+			g.CurrentPlayer = 1
+		} else {
+			g.CurrentPlayer = 0
+		}
 	}
 }
 
 // Construct acts when the current player wants to build a card
 func (g *Game) Construct(card *Card) {
+	player := &g.Players[g.CurrentPlayer]
+	player.Buildings = append(player.Buildings, card.Building)
+	g.Board.removeCard(card)
+	g.endRound()
+}
 
+// ConstructWonder acts when the current player wants to build a wonder with the selected card
+func (g *Game) ConstructWonder(card *Card) {
+	//player := &g.Players[g.CurrentPlayer]
+	g.Board.removeCard(card)
+	g.endRound()
 }
 
 // Discard acts when the current player discards a card from the board

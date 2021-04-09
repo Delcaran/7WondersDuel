@@ -349,14 +349,22 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 						} else {
 							subtext = fmt.Sprintf("[white]You can build spending [yellow]%d[white] coins", coins)
 						}
-						actions.AddItem(fmt.Sprintf("Construct %s", text), subtext, 'c', nil)
+						actions.AddItem(fmt.Sprintf("Construct %s", text), subtext, 'c', func() {
+							g.Construct(card)
+							actions.Clear()
+							refresh(g, gui)
+						})
 					}
 					actions.AddItem(fmt.Sprintf("Discard %s", text), fmt.Sprintf("[white]You will earn [yellow]%d[white] coins", sellIncome), 'd', func() {
 						g.Discard(card)
 						actions.Clear()
 						refresh(g, gui)
 					})
-					actions.AddItem(fmt.Sprintf("Use %s to construct a Wonder", text), "", 'w', nil)
+					actions.AddItem(fmt.Sprintf("Use %s to construct a Wonder", text), "", 'w', func() {
+						g.ConstructWonder(card)
+						actions.Clear()
+						refresh(g, gui)
+					})
 				})
 				row++
 			}

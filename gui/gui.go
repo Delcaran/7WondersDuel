@@ -439,6 +439,7 @@ func Gui(game *game.Game) *tview.Application {
 	myGUI.boardTable = tview.NewTable()
 	myGUI.topFlex.AddItem(myGUI.boardTable, 0, 1, false)
 	myGUI.actionsFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore destra: carte disponibili e azioni
+	myGUI.topFlex.AddItem(myGUI.actionsFlex, 0, 1, false)
 	myGUI.actionsFrame = tview.NewFrame(myGUI.actionsFlex).AddText("COMMANDS", true, tview.AlignCenter, tcell.ColorWhite)
 	myGUI.activeCardsList = tview.NewList()
 	myGUI.actionsList = tview.NewList()
@@ -455,6 +456,8 @@ func Gui(game *game.Game) *tview.Application {
 
 	myGUI.mainFlex = tview.NewFlex().SetDirection(tview.FlexRow)
 	myGUI.main = tview.NewFrame(myGUI.mainFlex)
+	myGUI.mainFlex.AddItem(myGUI.topFlex, 0, 1, false)
+	myGUI.mainFlex.AddItem(myGUI.bottomFlex, 0, 1, false)
 
 	// GUI done, it's time to play
 

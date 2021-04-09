@@ -418,28 +418,47 @@ func (g *Game) DeployBoard() {
 	}
 }
 
+func (g *Game) calculatePoints() [2]int {
+	var points [2]int
+	// TODO implementare
+	return points
+}
+
 func (g *Game) endRound() {
 	if g.Board.AvailableCards == 0 {
-		g.CurrentAge++
-		g.CurrentRound = 0
-
-		p1idx := 0
-		p2idx := 1
-		p1 := &g.Players[p1idx]
-		p2 := &g.Players[p2idx]
-		var chooser int
-		if p1.MilitaryPower == p2.MilitaryPower {
-			// player who played last card chooses who begins next age
-			chooser = g.CurrentPlayer
-		} else {
-			// player with weaker military power chooses who begins next age
-			if p1.MilitaryPower < p2.MilitaryPower {
-				chooser = 0
+		if g.CurrentAge == 3 { // end game, g.CurrentPlayer will cointain the winner. -1 for draw
+			points := g.calculatePoints()
+			if points[0] == points[1] {
+				g.CurrentPlayer = -1
 			} else {
-				chooser = 1
+				if points[0] > points[1] {
+					g.CurrentPlayer = 0
+				} else {
+					g.CurrentPlayer = 1
+				}
 			}
+		} else {
+			g.CurrentAge++
+			g.CurrentRound = 0
+
+			p1idx := 0
+			p2idx := 1
+			p1 := &g.Players[p1idx]
+			p2 := &g.Players[p2idx]
+			var chooser int
+			if p1.MilitaryPower == p2.MilitaryPower {
+				// player who played last card chooses who begins next age
+				chooser = g.CurrentPlayer
+			} else {
+				// player with weaker military power chooses who begins next age
+				if p1.MilitaryPower < p2.MilitaryPower {
+					chooser = 0
+				} else {
+					chooser = 1
+				}
+			}
+			g.CurrentPlayer = chooser // TODO: per ora chi deve scegliere "sceglie" sempre se stesso, poi vedremo come fare
 		}
-		g.CurrentPlayer = chooser // TODO: per ora chi deve scegliere "sceglie" sempre se stesso, poi vedremo come fare
 	} else {
 		g.CurrentRound++
 		if g.CurrentPlayer == 0 {

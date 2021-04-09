@@ -185,6 +185,13 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tvie
 		view = view.SetCell(riga, cText, tview.NewTableCell(label).SetTextColor(color).SetAlign(tview.AlignRight))
 		view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(value)).SetTextColor(color).SetAlign(tview.AlignCenter))
 	}
+	// TODO: points
+	// TODO: military power
+	// TODO: dynamic production
+	// TODO: trade bonus
+	// TODO: tokens
+	// TODO: wonders
+	// TODO: end-game bonus (da gilde ecc)
 }
 
 func evaluateBuildability(g *game.Game, card *game.Card) (bool, bool, int) {
@@ -318,11 +325,11 @@ func getBuildingSummary(card *game.Card) string {
 }
 
 type componentsGUI struct {
-	app                                                                  *tview.Application
-	main, youInfoFrame, opponentInfoFrame, mainRightBottom, mainRightTop *tview.Frame
-	youInfo, opponentInfo, boardTable                                    *tview.Table
-	activeCardsList, actionsList                                         *tview.List
-	mainLeftBottom, mainLeft, mainRight, mainFlex                        *tview.Flex
+	app                                                 *tview.Application
+	main, youInfoFrame, opponentInfoFrame, actionsFrame *tview.Frame
+	youInfo, opponentInfo, boardTable                   *tview.Table
+	activeCardsList, actionsList                        *tview.List
+	mainFlex, bottomFlex, topFlex, actionsFlex          *tview.Flex
 }
 
 func fillActions(g *game.Game, gui *componentsGUI) {
@@ -342,6 +349,10 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 				view.AddItem(text, getBuildingSummary(card), cardRunes[row], func() {
 					gui.app.SetFocus(actions)
 					actions.Clear()
+					actions.AddItem("BACK", "Bo back to building selection", 'b', func() {
+						actions.Clear()
+						refresh(g, gui)
+					})
 					if buyable { // check if player can construct the card
 						var subtext string
 						if free || coins <= 0 {
@@ -411,6 +422,7 @@ func refresh(game *game.Game, gui *componentsGUI) {
 		gui.main.Clear()
 		gui.main.AddText(title, true, tview.AlignCenter, titleColor)
 		fillBoardTable(game, gui.boardTable)
+		// TODO: stabilire se *io* sono sempre il player 0 o meno...
 		fillPlayerInfoArea(game, 0, gui.youInfo, gui.youInfoFrame)
 		fillPlayerInfoArea(game, 1, gui.opponentInfo, gui.opponentInfoFrame)
 		fillActions(game, gui)
@@ -422,27 +434,26 @@ func Gui(game *game.Game) *tview.Application {
 	// create components & layout
 	var myGUI componentsGUI
 	myGUI.app = tview.NewApplication()
-	myGUI.youInfo = tview.NewTable()
-	myGUI.youInfoFrame = tview.NewFrame(myGUI.youInfo)
-	myGUI.opponentInfo = tview.NewTable()
-	myGUI.opponentInfoFrame = tview.NewFrame(myGUI.opponentInfo)
-	myGUI.mainLeftBottom = tview.NewFlex().SetDirection(tview.FlexColumn)
-	myGUI.mainLeftBottom.AddItem(myGUI.youInfoFrame, 0, 1, false)
-	myGUI.mainLeftBottom.AddItem(myGUI.opponentInfoFrame, 0, 1, false)
-	myGUI.mainLeft = tview.NewFlex().SetDirection(tview.FlexRow)
+
+	myGUI.topFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore: plancia e comandi
 	myGUI.boardTable = tview.NewTable()
-	myGUI.mainLeft.AddItem(myGUI.boardTable, 0, 1, false)
-	myGUI.mainLeft.AddItem(myGUI.mainLeftBottom, 0, 1, false)
+	myGUI.topFlex.AddItem(myGUI.boardTable, 0, 1, false)
+	myGUI.actionsFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore destra: carte disponibili e azioni
+	myGUI.actionsFrame = tview.NewFrame(myGUI.actionsFlex).AddText("COMMANDS", true, tview.AlignCenter, tcell.ColorWhite)
 	myGUI.activeCardsList = tview.NewList()
 	myGUI.actionsList = tview.NewList()
-	myGUI.mainRightTop = tview.NewFrame(myGUI.activeCardsList).AddText("USABLE CARDS", true, tview.AlignCenter, tcell.ColorWhite)
-	myGUI.mainRightBottom = tview.NewFrame(myGUI.actionsList)
-	myGUI.mainRight = tview.NewFlex().SetDirection(tview.FlexRow)
-	myGUI.mainRight.AddItem(myGUI.mainRightTop, 0, 1, false)
-	myGUI.mainRight.AddItem(myGUI.mainRightBottom, 0, 1, false)
-	myGUI.mainFlex = tview.NewFlex().SetDirection(tview.FlexColumn)
-	myGUI.mainFlex.AddItem(myGUI.mainLeft, 0, 1, false)
-	myGUI.mainFlex.AddItem(myGUI.mainRight, 0, 1, true) // "USABLE CARDS" has focus because all commands start from here
+	myGUI.actionsFlex.AddItem(myGUI.activeCardsList, 0, 1, true)
+	myGUI.actionsFlex.AddItem(myGUI.actionsList, 0, 1, false)
+
+	myGUI.bottomFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte inferiore: info dei due giocatori
+	myGUI.youInfo = tview.NewTable()
+	myGUI.youInfoFrame = tview.NewFrame(myGUI.youInfo)
+	myGUI.bottomFlex.AddItem(myGUI.youInfoFrame, 0, 1, false)
+	myGUI.opponentInfo = tview.NewTable()
+	myGUI.opponentInfoFrame = tview.NewFrame(myGUI.opponentInfo)
+	myGUI.bottomFlex.AddItem(myGUI.opponentInfoFrame, 0, 1, false)
+
+	myGUI.mainFlex = tview.NewFlex().SetDirection(tview.FlexRow)
 	myGUI.main = tview.NewFrame(myGUI.mainFlex)
 
 	// GUI done, it's time to play

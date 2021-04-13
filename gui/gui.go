@@ -454,6 +454,8 @@ func refresh(game *game.Game, gui *componentsGUI) {
 					drawMain(game, gui)
 				})
 				gui.app.SetRoot(modal, true).SetFocus(modal)
+			} else {
+				drawMain(game, gui)
 			}
 		}
 	}

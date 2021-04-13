@@ -143,16 +143,14 @@ func fillBoardTable(game *game.Game, boardTable *tview.Table) {
 }
 
 func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tview.Frame) {
-	var text string
 	var textColor string
 	var borderColor tcell.Color
+	text := g.Players[player].Name
 	flags := "-"
 	if player == 0 {
-		text = "YOU"
 		textColor = "blue"
 		borderColor = tcell.ColorBlue
 	} else {
-		text = "OPPONENT"
 		textColor = "red"
 		borderColor = tcell.ColorRed
 	}
@@ -331,11 +329,11 @@ func getBuildingSummary(card *game.Card) string {
 }
 
 type componentsGUI struct {
-	app                                                 *tview.Application
-	main, youInfoFrame, opponentInfoFrame, actionsFrame *tview.Frame
-	youInfo, opponentInfo, boardTable                   *tview.Table
-	activeCardsList, actionsList                        *tview.List
-	mainFlex, bottomFlex, topFlex, actionsFlex          *tview.Flex
+	app                                          *tview.Application
+	main, p1InfoFrame, p2InfoFrame, actionsFrame *tview.Frame
+	p1Info, p2Info, boardTable                   *tview.Table
+	activeCardsList, actionsList                 *tview.List
+	mainFlex, bottomFlex, topFlex, actionsFlex   *tview.Flex
 }
 
 func fillActions(g *game.Game, gui *componentsGUI) {
@@ -343,6 +341,7 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 	cardRunes := []rune(cardSelectors)
 	row := 0
 	view := gui.activeCardsList
+	gui.actionsFrame.SetTitle(fmt.Sprintf("%s, it's your turn", g.Players[g.CurrentPlayer].Name))
 	view.Clear()
 	for r := 0; r <= g.Board.YMax; r++ {
 		for c := 0; c < g.Board.XMax; c++ {
@@ -389,50 +388,86 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 	}
 }
 
+func drawMain(game *game.Game, gui *componentsGUI) {
+	gui.app.SetRoot(gui.main, true)
+	gui.app.SetFocus(gui.activeCardsList)
+
+	gui.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// BEGIN DEBUG FUNCTIONALITY
+		switch event.Rune() {
+		case 'n':
+			game.CurrentRound = 0
+			game.CurrentAge++
+			refresh(game, gui)
+		case 'q':
+			gui.app.Stop()
+		}
+		// END DEBUG FUNCTIONALITY
+		return event
+	})
+
+	game.DeployBoard()
+	title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
+	titleColor := tcell.ColorWhite
+	switch game.CurrentAge {
+	case 1:
+		titleColor = tcell.ColorDarkGoldenrod
+	case 2:
+		titleColor = tcell.ColorLightBlue
+	case 3:
+		titleColor = tcell.ColorViolet
+	default:
+		titleColor = tcell.ColorRed // means "oh shit"
+	}
+	gui.main.Clear()
+	gui.main.AddText(title, true, tview.AlignCenter, titleColor)
+	fillBoardTable(game, gui.boardTable)
+	// TODO: stabilire se *io* sono sempre il player 0 o meno...
+	fillPlayerInfoArea(game, 0, gui.p1Info, gui.p1InfoFrame)
+	fillPlayerInfoArea(game, 1, gui.p2Info, gui.p2InfoFrame)
+	fillActions(game, gui)
+}
+
 func refresh(game *game.Game, gui *componentsGUI) {
 	if game.CurrentAge > 3 {
 		gui.app.Stop()
+		// display the winner
+		fmt.Printf("\n\n%s WINS!\n\n", game.Players[game.CurrentPlayer].Name)
 	} else {
-		gui.app.SetRoot(gui.main, true)
-		gui.app.SetFocus(gui.activeCardsList)
-
-		gui.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-			// BEGIN DEBUG FUNCTIONALITY
-			switch event.Rune() {
-			case 'n':
-				game.CurrentRound = 0
-				game.CurrentAge++
-				refresh(game, gui)
-			case 'q':
-				gui.app.Stop()
-			case 'c':
-				game.Players[0].Coins += 2
-				refresh(game, gui)
+		if game.CurrentAge == 0 && (game.Players[0].Name == "" || game.Players[1].Name == "") {
+			game.Players[0].Name = "Leonida"
+			game.Players[1].Name = "Serse"
+			form := tview.NewForm().
+				AddInputField("Player 1", game.Players[0].Name, 20, nil, func(text string) {
+					game.Players[0].Name = text
+				}).
+				AddInputField("Player 2", game.Players[1].Name, 20, nil, func(text string) {
+					game.Players[1].Name = text
+				}).
+				AddButton("Start", func() {
+					refresh(game, gui)
+				}).
+				AddButton("Quit", func() {
+					gui.app.Stop()
+				})
+			form.SetBorder(true).SetTitle("Enter player's names").SetTitleAlign(tview.AlignCenter)
+			gui.app.SetRoot(form, true).SetFocus(form)
+		} else {
+			if game.CurrentRound == 0 {
+				// choose who begins this age
+				var txt string
+				if game.CurrentAge == 0 {
+					txt = "Who will begin the game?"
+				} else {
+					txt = fmt.Sprintf("Who will begin Age %d?", game.CurrentAge)
+				}
+				modal := tview.NewModal().SetText(txt).AddButtons([]string{game.Players[0].Name, game.Players[1].Name}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					game.CurrentPlayer = buttonIndex
+					drawMain(game, gui)
+				})
+				gui.app.SetRoot(modal, true).SetFocus(modal)
 			}
-			// END DEBUG FUNCTIONALITY
-			return event
-		})
-
-		game.DeployBoard()
-		title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
-		titleColor := tcell.ColorWhite
-		switch game.CurrentAge {
-		case 1:
-			titleColor = tcell.ColorDarkGoldenrod
-		case 2:
-			titleColor = tcell.ColorLightBlue
-		case 3:
-			titleColor = tcell.ColorViolet
-		default:
-			titleColor = tcell.ColorRed // means "oh shit"
 		}
-		gui.main.Clear()
-		gui.main.AddText(title, true, tview.AlignCenter, titleColor)
-		fillBoardTable(game, gui.boardTable)
-		// TODO: stabilire se *io* sono sempre il player 0 o meno...
-		fillPlayerInfoArea(game, 0, gui.youInfo, gui.youInfoFrame)
-		fillPlayerInfoArea(game, 1, gui.opponentInfo, gui.opponentInfoFrame)
-		fillActions(game, gui)
 	}
 }
 
@@ -453,12 +488,12 @@ func Gui(game *game.Game) *tview.Application {
 	myGUI.actionsFlex.AddItem(myGUI.actionsList, 0, 1, false)
 
 	myGUI.bottomFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte inferiore: info dei due giocatori
-	myGUI.youInfo = tview.NewTable()
-	myGUI.youInfoFrame = tview.NewFrame(myGUI.youInfo)
-	myGUI.bottomFlex.AddItem(myGUI.youInfoFrame, 0, 1, false)
-	myGUI.opponentInfo = tview.NewTable()
-	myGUI.opponentInfoFrame = tview.NewFrame(myGUI.opponentInfo)
-	myGUI.bottomFlex.AddItem(myGUI.opponentInfoFrame, 0, 1, false)
+	myGUI.p1Info = tview.NewTable()
+	myGUI.p1InfoFrame = tview.NewFrame(myGUI.p1Info)
+	myGUI.bottomFlex.AddItem(myGUI.p1InfoFrame, 0, 1, false)
+	myGUI.p2Info = tview.NewTable()
+	myGUI.p2InfoFrame = tview.NewFrame(myGUI.p2Info)
+	myGUI.bottomFlex.AddItem(myGUI.p2InfoFrame, 0, 1, false)
 
 	myGUI.mainFlex = tview.NewFlex().SetDirection(tview.FlexRow)
 	myGUI.mainFlex.AddItem(myGUI.topFlex, 0, 1, false)
@@ -467,14 +502,14 @@ func Gui(game *game.Game) *tview.Application {
 	myGUI.main = tview.NewFrame(myGUI.mainFlex)
 
 	myGUI.actionsFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter).SetTitleColor(tcell.ColorWhite)
-	myGUI.actionsFrame.SetTitle("COMMANDS")
-	myGUI.youInfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
-	myGUI.opponentInfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
+	myGUI.p1InfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
+	myGUI.p2InfoFrame.SetBorder(true).SetTitleAlign(tview.AlignCenter)
 
 	myGUI.app = tview.NewApplication()
 	// GUI done, it's time to play
 
 	// initialization
+	game.CurrentPlayer = -1
 	refresh(game, &myGUI)
 
 	return myGUI.app

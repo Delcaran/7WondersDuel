@@ -42,6 +42,7 @@ func (d *gameContent) prepareContent() {
 }
 
 type player struct {
+	Name          string
 	Points        int
 	Coins         int
 	BonusShields  int // in addition of those from buildings
@@ -399,9 +400,7 @@ func (g *Game) DeployBoard() {
 	if g.CurrentRound == 0 { // at beginning of each age
 		var err error
 		if g.CurrentAge == 0 { // at beginning of game
-			rand.Seed(time.Now().UnixNano())
 			g.CurrentAge = 1
-			g.CurrentPlayer = rand.Intn(2)
 			g.BoxContent, err = loadGameContent()
 			if err != nil {
 				log.Fatal(err)
@@ -421,6 +420,8 @@ func (g *Game) DeployBoard() {
 func (g *Game) calculatePoints() [2]int {
 	var points [2]int
 	// TODO implementare
+	points[0] = rand.Intn(100)
+	points[1] = rand.Intn(100)
 	return points
 }
 

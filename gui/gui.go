@@ -416,24 +416,23 @@ func drawMain(game *game.Game, gui *componentsGUI) {
 	fillActions(game, gui)
 }
 
-func refresh(game *game.Game, gui *componentsGUI) {
-	if game.CurrentAge > 3 {
+func refresh(g *game.Game, gui *componentsGUI) {
+	if g.CurrentAge > 3 {
 		gui.app.Stop()
 		// display the winner
-		fmt.Printf("\n\n%s WINS!\n\n", game.Players[game.CurrentPlayer].Name)
+		fmt.Printf("\n\n%s WINS!\n\n", g.Players[g.CurrentPlayer].Name)
 	} else {
-		if game.CurrentAge == 0 && (game.Players[0].Name == "" || game.Players[1].Name == "") {
-			game.Players[0].Name = "Leonida"
-			game.Players[1].Name = "Serse"
+		if !g.Ready {
 			form := tview.NewForm().
-				AddInputField("Player 1", game.Players[0].Name, 20, nil, func(text string) {
-					game.Players[0].Name = text
+				AddInputField("Player 1", g.GetPlayer1Name(), 20, nil, func(text string) {
+					g.SetPlayer1Name(text)
 				}).
-				AddInputField("Player 2", game.Players[1].Name, 20, nil, func(text string) {
-					game.Players[1].Name = text
+				AddInputField("Player 2", g.GetPlayer2Name(), 20, nil, func(text string) {
+					g.SetPlayer2Name(text)
 				}).
 				AddButton("Start", func() {
-					refresh(game, gui)
+					g.SetReady()
+					refresh(g, gui)
 				}).
 				AddButton("Quit", func() {
 					gui.app.Stop()
@@ -441,21 +440,20 @@ func refresh(game *game.Game, gui *componentsGUI) {
 			form.SetBorder(true).SetTitle("Enter player's names").SetTitleAlign(tview.AlignCenter)
 			gui.app.SetRoot(form, true).SetFocus(form)
 		} else {
-			if game.CurrentRound == 0 {
+			if g.CurrentRound == 0 {
 				// choose who begins this age
-				var txt string
-				if game.CurrentAge == 0 {
-					txt = "Who will begin the game?"
-				} else {
-					txt = fmt.Sprintf("Who will begin Age %d?", game.CurrentAge)
-				}
-				modal := tview.NewModal().SetText(txt).AddButtons([]string{game.Players[0].Name, game.Players[1].Name}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-					game.CurrentPlayer = buttonIndex
-					drawMain(game, gui)
+				txt := fmt.Sprintf("Who will begin Age %d?", g.CurrentAge)
+				modal := tview.NewModal().SetText(txt).AddButtons([]string{g.GetPlayer1Name(), g.GetPlayer2Name()}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					if buttonLabel == g.GetPlayer1Name() {
+						g.SetPlayer1Turn()
+					} else {
+						g.SetPlayer2Turn()
+					}
+					drawMain(g, gui)
 				})
 				gui.app.SetRoot(modal, true).SetFocus(modal)
 			} else {
-				drawMain(game, gui)
+				drawMain(g, gui)
 			}
 		}
 	}
@@ -499,7 +497,7 @@ func Gui(game *game.Game) *tview.Application {
 	// GUI done, it's time to play
 
 	// initialization
-	game.CurrentPlayer = -1
+	game.Initialize()
 	refresh(game, &myGUI)
 
 	return myGUI.app

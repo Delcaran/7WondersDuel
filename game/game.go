@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+const (
+	DefaultPlayer1Name = "Leonida"
+	DefaultPlayer2Name = "Serse"
+)
+
 type tokenChoice struct {
 	Choose int
 	Pick   int
@@ -315,6 +320,7 @@ type Game struct {
 	DiscardedTokens []token
 	BoxContent      gameContent
 	Players         [2]player
+	Ready           bool
 }
 
 func loadGameContent() (gameContent, error) {
@@ -491,4 +497,48 @@ func (g *Game) Discard(card *Card) {
 	player.Coins += player.CalculateSellIncome()
 	g.Board.removeCard(card)
 	g.endRound()
+}
+
+// Initialize match
+func (g *Game) Initialize() {
+	g.Ready = false
+	g.SetPlayer1Name(defaultPlayer1Name)
+	g.SetPlayer2Name(defaultPlayer2Name)
+	g.CurrentAge = 0
+	g.CurrentPlayer = -1
+	g.CurrentRound = 0
+}
+
+func (g *Game) SetReady() {
+	g.Ready = true
+}
+
+// SetPlayer1Turn sets turn to player 1
+func (g *Game) SetPlayer1Turn() {
+	g.CurrentPlayer = 0
+}
+
+// SetPlayer2Turn sets turn to player 1
+func (g *Game) SetPlayer2Turn() {
+	g.CurrentPlayer = 1
+}
+
+// GetPlayer1Name returns name of player 1
+func (g *Game) GetPlayer1Name() string {
+	return g.Players[0].Name
+}
+
+// GetPlayer2Name returns name of player 2
+func (g *Game) GetPlayer2Name() string {
+	return g.Players[1].Name
+}
+
+// SetPlayer1Name set name of player 1
+func (g *Game) SetPlayer1Name(n string) {
+	g.Players[0].Name = n
+}
+
+// SetPlayer2Name set name of player 2
+func (g *Game) SetPlayer2Name(n string) {
+	g.Players[1].Name = n
 }

@@ -56,89 +56,76 @@ func getTypeColorString(card *game.Card) string {
 }
 
 // Print the board just for reference. All action will be made from right panel
-func fillBoardTable(game *game.Game, boardTable *tview.Table) {
-	boardTable.Clear().SetBorders(false).SetSelectable(false, false)
-	subRows := 0
-	maxSubrows := 4
+func fillBoard(game *game.Game, board *tview.Grid) {
+	board.Clear().SetBorders(false).SetColumns(game.Board.XMax).SetRows(game.Board.YMax)
 	for r := 0; r <= game.Board.YMax; r++ {
 		for c := 0; c < game.Board.XMax; c++ {
 			card := &game.Board.Cards[r][c]
 			if !card.Picked && card.Building != nil {
-				cardName := "XXXXXXXXXX"
-				var color, bgColor tcell.Color
+				var color tcell.Color
+				var cardName, extendedInfo, flag string
+				extendedInfoView := tview.NewTextView().SetDynamicColors(true)
+				extendedInfoView.SetTextAlign(tview.AlignLeft).SetTitleAlign(tview.AlignCenter).SetBorder(true)
 				if card.Visible {
-					cardName = fmt.Sprintf("[::b]%s[-:-:-]", card.Building.Name)
 					color = getTypeColor(card)
-					if !game.Board.CardBlocked(card) {
-						bgColor = tcell.ColorWhite
+					// default production for this kind of card
+					switch card.Building.Type {
+					case "raw":
+						extendedInfo = getBuildingProduction(card)
+					case "manufactured":
+						extendedInfo = getBuildingProduction(card)
+					case "commercial":
+						extendedInfo = getBuildingTrade(card)
+					case "military":
+						extendedInfo = fmt.Sprintf("Shields: [red]%d[white]", card.Building.Production.Shield)
+					case "guild":
+						extendedInfo = "TODO"
+					case "civilian":
+						extendedInfo = getBuildingOTOG(card)
+					case "scientific":
+						extendedInfo = getBuildingScience(card)
+					default:
+						extendedInfo = ""
 					}
+					// extra output
+					extendedInfo = fmt.Sprintf("%s\n%s", extendedInfo, getBuildingLinks(card))
+					if card.Building.Type != "civilian" {
+						extendedInfo = fmt.Sprintf("%s %s", extendedInfo, getBuildingOTOG(card))
+					}
+					// cost
+					extendedInfo = fmt.Sprintf("%s\n%s", extendedInfo, getBuildingCost(card))
+					// links
+					if len(card.Building.Linked) > 0 {
+						extendedInfo = fmt.Sprintf("%s\n%s", extendedInfo, card.Building.Linked)
+					}
+					if !game.Board.CardBlocked(card) {
+						flag = "b"
+						extendedInfoView.SetBorderAttributes(tcell.AttrBold)
+					} else {
+						flag = ""
+						extendedInfoView.SetBorderAttributes(tcell.AttrDim)
+					}
+					cardName = fmt.Sprintf("[::%s]%s[-:-:-]", flag, card.Building.Name)
 				} else {
 					switch game.CurrentAge {
 					case 1:
-						bgColor = tcell.ColorDarkGoldenrod
+						color = tcell.ColorDarkGoldenrod
 					case 2:
-						bgColor = tcell.ColorLightBlue
+						color = tcell.ColorLightBlue
 					case 3:
-						bgColor = tcell.ColorViolet
+						color = tcell.ColorViolet
 						if card.Building.Type == "guild" {
-							bgColor = tcell.ColorPurple
+							color = tcell.ColorPurple
 						}
 					default:
-						bgColor = tcell.ColorWhite
+						color = tcell.ColorWhite
 					}
-					color = bgColor
+					extendedInfoView.SetBackgroundColor(color)
 				}
-				cell := tview.NewTableCell(cardName).SetAlign(tview.AlignCenter).SetTextColor(color).SetBackgroundColor(bgColor)
-				boardTable.SetCell(r+subRows, c, cell)
-				for subRow := 1; subRow <= maxSubrows; subRow++ {
-					var subCellText string
-					align := tview.AlignCenter
-					if card.Visible {
-						switch subRow {
-						case 1: // typical output for this kind of card
-							switch card.Building.Type {
-							case "raw":
-								subCellText = getBuildingProduction(card)
-							case "manufactured":
-								subCellText = getBuildingProduction(card)
-							case "commercial":
-								subCellText = getBuildingTrade(card)
-							case "military":
-								subCellText = fmt.Sprintf("Shields: [red]%d[white]", card.Building.Production.Shield)
-							case "guild":
-								subCellText = "TODO"
-							case "civilian":
-								subCellText = getBuildingOTOG(card)
-							case "scientific":
-								subCellText = getBuildingScience(card)
-							default:
-								subCellText = ""
-							}
-						case 2: // extra output
-							subCellText = getBuildingLinks(card)
-							if card.Building.Type != "civilian" {
-								subCellText = fmt.Sprintf("%s %s", subCellText, getBuildingOTOG(card))
-							}
-							align = tview.AlignRight
-						case 3:
-							subCellText = getBuildingCost(card)
-							align = tview.AlignLeft
-						case 4:
-							if len(card.Building.Linked) > 0 {
-								subCellText = card.Building.Linked
-							}
-							align = tview.AlignLeft
-						}
-					}
-					subCell := tview.NewTableCell(subCellText).SetAlign(align)
-					if !card.Visible {
-						subCell.SetBackgroundColor(bgColor)
-					}
-					boardTable.SetCell(r+subRows+subRow, c, subCell)
-				}
+				extendedInfoView.SetText(extendedInfo).SetTitle(cardName).SetTitleColor(color).SetBorderColor(color)
+				board.AddItem(extendedInfoView, r, c, 1, 2, 0, 0, false)
 			}
 		}
-		subRows += maxSubrows
 	}
 }
 
@@ -331,7 +318,8 @@ func getBuildingSummary(card *game.Card) string {
 type componentsGUI struct {
 	app                                          *tview.Application
 	main, p1InfoFrame, p2InfoFrame, actionsFrame *tview.Frame
-	p1Info, p2Info, boardTable                   *tview.Table
+	p1Info, p2Info                               *tview.Table
+	board                                        *tview.Grid
 	activeCardsList, actionsList                 *tview.List
 	mainFlex, bottomFlex, topFlex, actionsFlex   *tview.Flex
 }
@@ -421,7 +409,7 @@ func drawMain(game *game.Game, gui *componentsGUI) {
 	}
 	gui.main.Clear()
 	gui.main.AddText(title, true, tview.AlignCenter, titleColor)
-	fillBoardTable(game, gui.boardTable)
+	fillBoard(game, gui.board)
 	// TODO: stabilire se *io* sono sempre il player 0 o meno...
 	fillPlayerInfoArea(game, 0, gui.p1Info, gui.p1InfoFrame)
 	fillPlayerInfoArea(game, 1, gui.p2Info, gui.p2InfoFrame)
@@ -477,8 +465,8 @@ func Gui(game *game.Game) *tview.Application {
 	var myGUI componentsGUI
 
 	myGUI.topFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore: plancia e comandi
-	myGUI.boardTable = tview.NewTable()
-	myGUI.topFlex.AddItem(myGUI.boardTable, 0, 2, false)
+	myGUI.board = tview.NewGrid()
+	myGUI.topFlex.AddItem(myGUI.board, 0, 2, false)
 	myGUI.actionsFlex = tview.NewFlex().SetDirection(tview.FlexColumn) // parte superiore destra: carte disponibili e azioni
 	myGUI.actionsFrame = tview.NewFrame(myGUI.actionsFlex)
 	myGUI.topFlex.AddItem(myGUI.actionsFrame, 0, 1, false)

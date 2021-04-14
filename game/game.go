@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-const (
-	DefaultPlayer1Name = "Leonida"
-	DefaultPlayer2Name = "Serse"
-)
-
 type tokenChoice struct {
 	Choose int
 	Pick   int
@@ -46,7 +41,8 @@ func (d *gameContent) prepareContent() {
 	}
 }
 
-type player struct {
+// Player informations
+type Player struct {
 	Name          string
 	Points        int
 	Coins         int
@@ -58,7 +54,7 @@ type player struct {
 	Tokens        []token
 }
 
-func calculateDynamicProduction(input []*production, inputIndex int, output []production, tmp production) {
+func calculateDynamicProduction(input []*Production, inputIndex int, output []Production, tmp Production) {
 	if inputIndex < len(input) {
 		in := input[inputIndex]
 		if in.Wood > 0 {
@@ -93,9 +89,10 @@ func calculateDynamicProduction(input []*production, inputIndex int, output []pr
 	}
 }
 
-func (p *player) AvailableResources() (production, []production) {
-	var fixed production
-	var toBeAnalized []*production
+// AvailableResources calculates dynamic and static production
+func (p *Player) AvailableResources() (Production, []Production) {
+	var fixed Production
+	var toBeAnalized []*Production
 	genericBuildings := []genericBuilding{}
 	for _, b := range p.Buildings {
 		genericBuildings = append(genericBuildings, b)
@@ -116,13 +113,13 @@ func (p *player) AvailableResources() (production, []production) {
 		}
 	}
 	// Create all combos of dynamic resources
-	var dynamic []production
-	var tmp production
+	var dynamic []Production
+	var tmp Production
 	calculateDynamicProduction(toBeAnalized, 0, dynamic, tmp)
 	return fixed, dynamic
 }
 
-func (p *player) calculatePrices(opponent *player) cost {
+func (p *Player) calculatePrices(opponent *Player) cost {
 	var Prices cost
 	opponentFixedProduction, _ := opponent.AvailableResources() // only raw and manufactured are fixed
 	Prices.Wood = 2 + opponentFixedProduction.Wood
@@ -152,7 +149,8 @@ func (p *player) calculatePrices(opponent *player) cost {
 	return Prices
 }
 
-func (p *player) CalculateSellIncome() int {
+// CalculateSellIncome returns coins gained from selling a building
+func (p *Player) CalculateSellIncome() int {
 	var Coins int
 	Coins = 2
 	for _, b := range p.Buildings {
@@ -163,7 +161,8 @@ func (p *player) CalculateSellIncome() int {
 	return Coins
 }
 
-func (p *player) CalculateBuyingCost(b *building, opponent *player) (bool, bool, int) {
+// CalculateBuyingCost returns how many coins are needed to construct a building
+func (p *Player) CalculateBuyingCost(b *building, opponent *Player) (bool, bool, int) {
 	var MissingResources cost
 	// check links for free building
 	for _, l := range p.Links {
@@ -319,7 +318,7 @@ type Game struct {
 	Tokens          []token
 	DiscardedTokens []token
 	BoxContent      gameContent
-	Players         [2]player
+	Players         [2]Player
 	Ready           bool
 }
 
@@ -502,13 +501,14 @@ func (g *Game) Discard(card *Card) {
 // Initialize match
 func (g *Game) Initialize() {
 	g.Ready = false
-	g.SetPlayer1Name(defaultPlayer1Name)
-	g.SetPlayer2Name(defaultPlayer2Name)
+	g.Player1().Name = "Leonida"
+	g.Player2().Name = "Serse"
 	g.CurrentAge = 0
 	g.CurrentPlayer = -1
 	g.CurrentRound = 0
 }
 
+// SetReady marks the game ready to begin
 func (g *Game) SetReady() {
 	g.Ready = true
 }
@@ -523,22 +523,22 @@ func (g *Game) SetPlayer2Turn() {
 	g.CurrentPlayer = 1
 }
 
-// GetPlayer1Name returns name of player 1
-func (g *Game) GetPlayer1Name() string {
-	return g.Players[0].Name
+// Player1 pointer
+func (g *Game) Player1() *Player {
+	return &g.Players[0]
 }
 
-// GetPlayer2Name returns name of player 2
-func (g *Game) GetPlayer2Name() string {
-	return g.Players[1].Name
+// Player2 pointer
+func (g *Game) Player2() *Player {
+	return &g.Players[1]
 }
 
-// SetPlayer1Name set name of player 1
-func (g *Game) SetPlayer1Name(n string) {
-	g.Players[0].Name = n
+// IsFirst returns true if player is the first of the whole match
+func (g *Game) IsFirst(p *Player) bool {
+	return &g.Players[0] == p
 }
 
-// SetPlayer2Name set name of player 2
-func (g *Game) SetPlayer2Name(n string) {
-	g.Players[1].Name = n
+// IsCurrent returns true if player is in its turn
+func (g *Game) IsCurrent(p *Player) bool {
+	return &g.Players[g.CurrentPlayer] == p
 }

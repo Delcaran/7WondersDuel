@@ -129,28 +129,27 @@ func fillBoard(game *game.Game, board *tview.Grid) {
 	}
 }
 
-func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tview.Frame) {
+func fillPlayerInfoArea(g *game.Game, player *game.Player, view *tview.Table, frame *tview.Frame) {
 	var textColor string
 	var borderColor tcell.Color
-	text := g.Players[player].Name
 	flags := "-"
-	if player == 0 {
+	if g.IsFirst(player) {
 		textColor = "blue"
 		borderColor = tcell.ColorBlue
 	} else {
 		textColor = "red"
 		borderColor = tcell.ColorRed
 	}
-	if player == g.CurrentPlayer {
+	if g.IsCurrent(player) {
 		flags = "b"
 		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrBold | tcell.AttrReverse)
 	} else {
 		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrDim)
 	}
-	fulltext := fmt.Sprintf("[%s::%s]%s[white]", textColor, flags, text)
+	fulltext := fmt.Sprintf("[%s::%s]%s[white]", textColor, flags, player.Name)
 	frame.Clear().SetTitle(fulltext)
 	view.SetBorders(false).SetSelectable(false, false).Clear()
-	fixedRes, _ := g.Players[player].AvailableResources()
+	fixedRes, _ := player.AvailableResources()
 	cText := 0
 	cVal := 1
 	data := fixedRes.ToMap()
@@ -161,7 +160,7 @@ func fillPlayerInfoArea(g *game.Game, player int, view *tview.Table, frame *tvie
 		switch label {
 		case "Coins":
 			color = tcell.ColorYellow
-			value = g.Players[player].Coins // non derivano da produzione, ma sono possedute
+			value = player.Coins // non derivano da produzione, ma sono possedute
 		case "Wood":
 			color = tcell.ColorBrown
 		case "Stone":
@@ -376,7 +375,7 @@ func fillActions(g *game.Game, gui *componentsGUI) {
 	}
 }
 
-func drawMain(game *game.Game, gui *componentsGUI) {
+func drawMain(g *game.Game, gui *componentsGUI) {
 	gui.app.SetRoot(gui.main, true)
 	gui.app.SetFocus(gui.activeCardsList)
 
@@ -384,9 +383,9 @@ func drawMain(game *game.Game, gui *componentsGUI) {
 		// BEGIN DEBUG FUNCTIONALITY
 		switch event.Rune() {
 		case 'n':
-			game.CurrentRound = 0
-			game.CurrentAge++
-			refresh(game, gui)
+			g.CurrentRound = 0
+			g.CurrentAge++
+			refresh(g, gui)
 		case 'q':
 			gui.app.Stop()
 		}
@@ -394,10 +393,10 @@ func drawMain(game *game.Game, gui *componentsGUI) {
 		return event
 	})
 
-	game.DeployBoard()
-	title := fmt.Sprintf("7 Wonders Duel - Age %d", game.CurrentAge)
+	g.DeployBoard()
+	title := fmt.Sprintf("7 Wonders Duel - Age %d", g.CurrentAge)
 	titleColor := tcell.ColorWhite
-	switch game.CurrentAge {
+	switch g.CurrentAge {
 	case 1:
 		titleColor = tcell.ColorDarkGoldenrod
 	case 2:
@@ -409,11 +408,10 @@ func drawMain(game *game.Game, gui *componentsGUI) {
 	}
 	gui.main.Clear()
 	gui.main.AddText(title, true, tview.AlignCenter, titleColor)
-	fillBoard(game, gui.board)
-	// TODO: stabilire se *io* sono sempre il player 0 o meno...
-	fillPlayerInfoArea(game, 0, gui.p1Info, gui.p1InfoFrame)
-	fillPlayerInfoArea(game, 1, gui.p2Info, gui.p2InfoFrame)
-	fillActions(game, gui)
+	fillBoard(g, gui.board)
+	fillPlayerInfoArea(g, g.Player1(), gui.p1Info, gui.p1InfoFrame)
+	fillPlayerInfoArea(g, g.Player2(), gui.p2Info, gui.p2InfoFrame)
+	fillActions(g, gui)
 }
 
 func refresh(g *game.Game, gui *componentsGUI) {
@@ -424,11 +422,11 @@ func refresh(g *game.Game, gui *componentsGUI) {
 	} else {
 		if !g.Ready {
 			form := tview.NewForm().
-				AddInputField("Player 1", g.GetPlayer1Name(), 20, nil, func(text string) {
-					g.SetPlayer1Name(text)
+				AddInputField("Player 1", g.Player1().Name, 20, nil, func(text string) {
+					g.Player1().Name = text
 				}).
-				AddInputField("Player 2", g.GetPlayer2Name(), 20, nil, func(text string) {
-					g.SetPlayer2Name(text)
+				AddInputField("Player 2", g.Player2().Name, 20, nil, func(text string) {
+					g.Player2().Name = text
 				}).
 				AddButton("Start", func() {
 					g.SetReady()
@@ -443,8 +441,8 @@ func refresh(g *game.Game, gui *componentsGUI) {
 			if g.CurrentRound == 0 {
 				// choose who begins this age
 				txt := fmt.Sprintf("Who will begin Age %d?", g.CurrentAge)
-				modal := tview.NewModal().SetText(txt).AddButtons([]string{g.GetPlayer1Name(), g.GetPlayer2Name()}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-					if buttonLabel == g.GetPlayer1Name() {
+				modal := tview.NewModal().SetText(txt).AddButtons([]string{g.Player1().Name, g.Player2().Name}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					if buttonLabel == g.Player1().Name {
 						g.SetPlayer1Turn()
 					} else {
 						g.SetPlayer2Turn()

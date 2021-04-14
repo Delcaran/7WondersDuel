@@ -8,13 +8,13 @@ import (
 type wonder struct {
 	ID           string
 	Name         string
-	Production   production   // perpetual gains
+	Production   Production   // perpetual gains
 	Construction construction // one-time-only gains
 	Cost         cost
 	TokenChoice  tokenChoice
 }
 
-func (b *wonder) getProduction() *production {
+func (b *wonder) getProduction() *Production {
 	return &b.Production
 }
 func (b *wonder) getConstruction() *construction {
@@ -35,7 +35,7 @@ type building struct {
 	Name         string
 	Type         string
 	Cost         cost
-	Production   production   // perpetual gains
+	Production   Production   // perpetual gains
 	Construction construction // one-time-only gains
 	Bonus        bonus
 	Trade        []string
@@ -45,7 +45,7 @@ type building struct {
 	Science      string
 }
 
-func (b *building) getProduction() *production {
+func (b *building) getProduction() *Production {
 	return &b.Production
 }
 func (b *building) getConstruction() *construction {
@@ -56,7 +56,7 @@ func (b *building) getCost() *cost {
 }
 
 type genericBuilding interface {
-	getProduction() *production
+	getProduction() *Production
 	getConstruction() *construction
 	getCost() *cost
 }

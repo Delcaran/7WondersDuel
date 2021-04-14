@@ -9,7 +9,8 @@ type cost struct {
 	Papyrus int
 }
 
-type production struct {
+// Production is what a building provides
+type Production struct {
 	Coins   int
 	Wood    int
 	Clay    int
@@ -30,7 +31,8 @@ const (
 	shield
 )
 
-func (p *production) ToMap() map[string]int {
+// ToMap easy maps label and values
+func (p *Production) ToMap() map[string]int {
 	var m = map[string]int{
 		"Coins":   p.Coins,
 		"Wood":    p.Wood,
@@ -56,7 +58,7 @@ type construction struct {
 	Discard      string
 	Tokens       tokenChoice
 	Shield       int
-	Production   production
+	Production   Production
 	ForEach      forEach
 }
 

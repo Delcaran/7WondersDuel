@@ -129,31 +129,13 @@ func fillBoard(game *game.Game, board *tview.Grid) {
 	}
 }
 
-func fillPlayerInfoArea(g *game.Game, player *game.Player, view *tview.Table, frame *tview.Frame) {
-	var textColor string
-	var borderColor tcell.Color
-	flags := "-"
-	if g.IsFirst(player) {
-		textColor = "blue"
-		borderColor = tcell.ColorBlue
-	} else {
-		textColor = "red"
-		borderColor = tcell.ColorRed
-	}
-	if g.IsCurrent(player) {
-		flags = "b"
-		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrBold | tcell.AttrReverse)
-	} else {
-		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrDim)
-	}
-	fulltext := fmt.Sprintf("[%s::%s]%s[white]", textColor, flags, player.Name)
-	frame.Clear().SetTitle(fulltext)
-	view.SetBorders(false).SetSelectable(false, false).Clear()
+func displayerPlayerResources(player *game.Player, view *tview.Table, beginRow int) int {
 	fixedRes, _ := player.AvailableResources()
 	cText := 0
 	cVal := 1
 	data := fixedRes.ToMap()
 	labels := []string{"Coins", "Wood", "Stone", "Clay", "Glass", "Papyrus"}
+	rows := 0
 	for riga, label := range labels {
 		value := data[label]
 		var color tcell.Color
@@ -172,15 +154,57 @@ func fillPlayerInfoArea(g *game.Game, player *game.Player, view *tview.Table, fr
 		case "Papyrus":
 			color = tcell.ColorGoldenrod
 		}
-		view = view.SetCell(riga, cText, tview.NewTableCell(label).SetTextColor(color).SetAlign(tview.AlignRight))
-		view = view.SetCell(riga, cVal, tview.NewTableCell(strconv.Itoa(value)).SetTextColor(color).SetAlign(tview.AlignCenter))
+		view = view.SetCell(riga+beginRow, cText, tview.NewTableCell(label).SetTextColor(color).SetAlign(tview.AlignRight))
+		view = view.SetCell(riga+beginRow, cVal, tview.NewTableCell(strconv.Itoa(value)).SetTextColor(color).SetAlign(tview.AlignCenter))
+		rows = riga
 	}
-	// TODO: points
-	// TODO: military power
+	return rows + beginRow
+}
+
+func displayerPlayerPoints(player *game.Player, view *tview.Table, beginRow int) int {
+	color := tcell.ColorBlue
+	view = view.SetCell(beginRow, 0, tview.NewTableCell("Points").SetTextColor(color).SetAlign(tview.AlignRight))
+	view = view.SetCell(beginRow, 1, tview.NewTableCell(strconv.Itoa(player.Points)).SetTextColor(color).SetAlign(tview.AlignCenter))
+	return beginRow + 1
+}
+
+func displayerPlayerMilitaryPower(player *game.Player, view *tview.Table, beginRow int) int {
+	color := tcell.ColorRed
+	view = view.SetCell(beginRow, 0, tview.NewTableCell("Military").SetTextColor(color).SetAlign(tview.AlignRight))
+	view = view.SetCell(beginRow, 1, tview.NewTableCell(strconv.Itoa(player.MilitaryPower)).SetTextColor(color).SetAlign(tview.AlignCenter))
+	return beginRow + 1
+}
+
+func fillPlayerInfoArea(g *game.Game, player *game.Player, view *tview.Table, frame *tview.Frame) {
+	var textColor string
+	var borderColor tcell.Color
+	flags := "-"
+	if g.IsFirst(player) {
+		textColor = "blue"
+		borderColor = tcell.ColorBlue
+	} else {
+		textColor = "red"
+		borderColor = tcell.ColorRed
+	}
+	if player == g.GetCurrentPlayer() {
+		flags = "b"
+		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrBold | tcell.AttrReverse)
+	} else {
+		frame.SetBorderColor(borderColor).SetBorderAttributes(tcell.AttrDim)
+	}
+	fulltext := fmt.Sprintf("[%s::%s]%s[white]", textColor, flags, player.Name)
+	frame.Clear().SetTitle(fulltext)
+	view.SetBorders(false).SetSelectable(false, false).Clear()
+
+	righe := displayerPlayerPoints(player, view, 0)
+	righe = displayerPlayerMilitaryPower(player, view, righe)
+	// TODO: wonders
+	righe = displayerPlayerResources(player, view, righe)
+
 	// TODO: dynamic production
+	// TODO: active links
 	// TODO: trade bonus
 	// TODO: tokens
-	// TODO: wonders
 	// TODO: end-game bonus (da gilde ecc)
 }
 
@@ -414,31 +438,76 @@ func drawMain(g *game.Game, gui *componentsGUI) {
 	fillActions(g, gui)
 }
 
+func arrayAddRemove(element int, add []int, rem []int) ([]int, []int) {
+	add = append(add, element)
+	for n, val := range rem {
+		if val == element {
+			rem = append(rem[:n], rem[n+1:]...)
+			break
+		}
+	}
+	return add, rem
+}
+
+func modalWonderPicker(g *game.Game, gui *componentsGUI) *tview.Form {
+	form := tview.NewForm()
+	title := fmt.Sprintf("%s, choose", g.GetCurrentPlayer().Name)
+	var selected, available []int
+	var maxSelected, maxDisplayed int
+	switch g.CurrentPhase {
+	case game.Player1Wonder1Phase:
+		title = fmt.Sprintf("%s one wonder", title)
+		maxSelected = 1
+		maxDisplayed = 4
+	case game.Player2Wonder2Phase:
+		title = fmt.Sprintf("%s two wonders", title)
+		maxSelected = 2
+		maxDisplayed = 3
+	case game.Player2Wonder1Phase:
+		title = fmt.Sprintf("%s one wonder", title)
+		maxSelected = 1
+		maxDisplayed = 4
+	case game.Player1Wonder2Phase:
+		title = fmt.Sprintf("%s two wonders", title)
+		maxSelected = 2
+		maxDisplayed = 3
+	}
+	form.SetBorder(true).SetTitle(title).SetTitleAlign(tview.AlignCenter)
+	for idx, w := range g.BoxContent.Wonders[:maxDisplayed] {
+		lidx := idx
+		label := fmt.Sprintf("%d %s", lidx, w.Name)
+		available = append(available, lidx)
+		form.AddCheckbox(label, false, func(checked bool) {
+			if checked {
+				selected, available = arrayAddRemove(lidx, selected, available) // aggiungo a selezionate, rimuovo da disponibili
+			} else {
+				available, selected = arrayAddRemove(lidx, available, selected) // aggiungo a disponibili, rimuovo da selezionate
+			}
+			if len(selected) == maxSelected && len(available) == maxDisplayed-maxSelected {
+				form.AddButton("Next", func() {
+					g.AddWonders(selected, available)
+					g.NextPhase()
+					refresh(g, gui)
+				})
+			} else {
+				if form.GetButtonCount() > 0 {
+					form.RemoveButton(0)
+				}
+			}
+		})
+	}
+	gui.app.SetRoot(form, true).SetFocus(form)
+	return form
+}
+
 func refresh(g *game.Game, gui *componentsGUI) {
 	if g.CurrentAge > 3 {
 		gui.app.Stop()
 		// display the winner
 		fmt.Printf("\n\n%s WINS!\n\n", g.Players[g.CurrentPlayer].Name)
 	} else {
-		if !g.Ready {
-			form := tview.NewForm().
-				AddInputField("Player 1", g.Player1().Name, 20, nil, func(text string) {
-					g.Player1().Name = text
-				}).
-				AddInputField("Player 2", g.Player2().Name, 20, nil, func(text string) {
-					g.Player2().Name = text
-				}).
-				AddButton("Start", func() {
-					g.SetReady()
-					refresh(g, gui)
-				}).
-				AddButton("Quit", func() {
-					gui.app.Stop()
-				})
-			form.SetBorder(true).SetTitle("Enter player's names").SetTitleAlign(tview.AlignCenter)
-			gui.app.SetRoot(form, true).SetFocus(form)
-		} else {
-			if g.CurrentRound == 0 {
+		if g.CurrentPhase == game.ReadyToPlay {
+			if g.CurrentAge > 1 && g.CurrentRound == 0 {
 				// choose who begins this age
 				txt := fmt.Sprintf("Who will begin Age %d?", g.CurrentAge)
 				modal := tview.NewModal().SetText(txt).AddButtons([]string{g.Player1().Name, g.Player2().Name}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
@@ -452,6 +521,44 @@ func refresh(g *game.Game, gui *componentsGUI) {
 				gui.app.SetRoot(modal, true).SetFocus(modal)
 			} else {
 				drawMain(g, gui)
+			}
+		} else {
+			switch g.CurrentPhase {
+			case game.PlayerNamesPhase:
+				form := tview.NewForm().
+					AddInputField("Player 1", g.Player1().Name, 20, nil, func(text string) {
+						g.Player1().Name = text
+					}).
+					AddInputField("Player 2", g.Player2().Name, 20, nil, func(text string) {
+						g.Player2().Name = text
+					}).
+					AddButton("Start", func() {
+						g.NextPhase()
+						refresh(g, gui)
+					}).
+					AddButton("Quit", func() {
+						gui.app.Stop()
+					})
+				form.SetBorder(true).SetTitle("Enter player's names").SetTitleAlign(tview.AlignCenter)
+				gui.app.SetRoot(form, true).SetFocus(form)
+			case game.FirstPlayerSelectionPhase:
+				modal := tview.NewModal().SetText("Who will be the first to play?").AddButtons([]string{g.Player1().Name, g.Player2().Name, "Random"}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					if buttonLabel == "Random" {
+						g.SetRandomPlayerTurn()
+					} else {
+						if buttonLabel == g.Player1().Name {
+							g.SetPlayer1Turn()
+						} else {
+							g.SetPlayer2Turn()
+						}
+					}
+					g.NextPhase()
+					refresh(g, gui)
+				})
+				gui.app.SetRoot(modal, true).SetFocus(modal)
+			default: // le fasi di selezione delle meraviglie
+				modal := modalWonderPicker(g, gui)
+				gui.app.SetRoot(modal, true).SetFocus(modal)
 			}
 		}
 	}

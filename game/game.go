@@ -3,6 +3,7 @@ package game
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -23,8 +24,6 @@ type gameContent struct {
 }
 
 func (d *gameContent) prepareContent() {
-	rand.Seed(time.Now().UTC().UnixNano())
-
 	// Shuffle wonders
 	rand.Shuffle(len(d.Wonders), func(i, j int) {
 		d.Wonders[i], d.Wonders[j] = d.Wonders[j], d.Wonders[i]
@@ -48,7 +47,7 @@ type Player struct {
 	Coins         int
 	BonusShields  int // in addition of those from buildings
 	MilitaryPower int
-	Wonders       []*wonder
+	Wonders       []wonder
 	Buildings     []*building
 	Links         []string
 	Tokens        []token
@@ -98,7 +97,7 @@ func (p *Player) AvailableResources() (Production, []Production) {
 		genericBuildings = append(genericBuildings, b)
 	}
 	for _, w := range p.Wonders {
-		genericBuildings = append(genericBuildings, w)
+		genericBuildings = append(genericBuildings, &w)
 	}
 	for _, g := range genericBuildings {
 		in := g.getProduction()
@@ -311,6 +310,7 @@ func (b *board) removeCard(c *Card) {
 
 // Game contains all the information required to play
 type Game struct {
+	CurrentPhase    int
 	CurrentRound    int
 	CurrentAge      int
 	CurrentPlayer   int
@@ -319,7 +319,6 @@ type Game struct {
 	DiscardedTokens []token
 	BoxContent      gameContent
 	Players         [2]Player
-	Ready           bool
 }
 
 func loadGameContent() (gameContent, error) {
@@ -403,19 +402,8 @@ func loadBoardLayout(age int, data *gameContent) board {
 // DeployBoard generates the layout for playing
 func (g *Game) DeployBoard() {
 	if g.CurrentRound == 0 { // at beginning of each age
-		var err error
-		if g.CurrentAge == 0 { // at beginning of game
+		if g.CurrentPhase == ReadyToPlay && g.CurrentAge == 0 { // at beginning of game
 			g.CurrentAge = 1
-			g.BoxContent, err = loadGameContent()
-			if err != nil {
-				log.Fatal(err)
-			}
-			// Setup initial data
-			g.BoxContent.Coins = 14*1 + 10*3 + 7*6
-			for p := range g.Players {
-				g.BoxContent.Coins -= 7
-				g.Players[p].Coins = 7
-			}
 			g.CurrentRound++
 		}
 		g.Board = loadBoardLayout(g.CurrentAge, &g.BoxContent)
@@ -467,11 +455,7 @@ func (g *Game) endRound() {
 		}
 	} else {
 		g.CurrentRound++
-		if g.CurrentPlayer == 0 {
-			g.CurrentPlayer = 1
-		} else {
-			g.CurrentPlayer = 0
-		}
+		g.switchPlayer()
 	}
 }
 
@@ -498,19 +482,49 @@ func (g *Game) Discard(card *Card) {
 	g.endRound()
 }
 
+// phases of play
+const (
+	PlayerNamesPhase = iota
+	FirstPlayerSelectionPhase
+	Player1Wonder1Phase
+	Player2Wonder2Phase
+	Player2Wonder1Phase
+	Player1Wonder2Phase
+	ReadyToPlay
+	EndGame
+)
+
 // Initialize match
 func (g *Game) Initialize() {
-	g.Ready = false
+	rand.Seed(time.Now().UTC().UnixNano())
 	g.Player1().Name = "Leonida"
 	g.Player2().Name = "Serse"
+	g.CurrentPhase = PlayerNamesPhase
 	g.CurrentAge = 0
 	g.CurrentPlayer = -1
 	g.CurrentRound = 0
+	var err error
+	g.BoxContent, err = loadGameContent()
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Setup initial data
+	g.BoxContent.Coins = 14*1 + 10*3 + 7*6
+	for p := range g.Players {
+		g.BoxContent.Coins -= 7
+		g.Players[p].Coins = 7
+	}
 }
 
-// SetReady marks the game ready to begin
-func (g *Game) SetReady() {
-	g.Ready = true
+// NextPhase advances to next stage before real play
+func (g *Game) NextPhase() {
+	switch g.CurrentPhase {
+	case Player1Wonder1Phase:
+		g.switchPlayer() // from Player 1 to player 2
+	case Player2Wonder1Phase:
+		g.switchPlayer() // from Player 2 to player 1
+	}
+	g.CurrentPhase++
 }
 
 // SetPlayer1Turn sets turn to player 1
@@ -521,6 +535,11 @@ func (g *Game) SetPlayer1Turn() {
 // SetPlayer2Turn sets turn to player 1
 func (g *Game) SetPlayer2Turn() {
 	g.CurrentPlayer = 1
+}
+
+// SetRandomPlayerTurn sets turn to random player
+func (g *Game) SetRandomPlayerTurn() {
+	g.CurrentPlayer = rand.Intn(2)
 }
 
 // Player1 pointer
@@ -538,7 +557,59 @@ func (g *Game) IsFirst(p *Player) bool {
 	return &g.Players[0] == p
 }
 
-// IsCurrent returns true if player is in its turn
-func (g *Game) IsCurrent(p *Player) bool {
-	return &g.Players[g.CurrentPlayer] == p
+// GetCurrentPlayer returns pointer to current player
+func (g *Game) GetCurrentPlayer() *Player {
+	return &g.Players[g.CurrentPlayer]
+}
+
+// GetOtherPlayer returns pointer to other player
+func (g *Game) GetOtherPlayer() *Player {
+	if g.CurrentPlayer == 0 {
+		return &g.Players[1]
+	}
+	return &g.Players[0]
+}
+
+func (g *Game) switchPlayer() {
+	if g.CurrentPlayer == 0 {
+		g.CurrentPlayer = 1
+	} else {
+		g.CurrentPlayer = 0
+	}
+}
+
+func test(d, p1, p2 int) {
+	local := fmt.Sprintf("%d %d %d", d, p1, p2)
+	fmt.Println(local)
+}
+
+// AddWonders adds some wonders to players
+func (g *Game) AddWonders(selected []int, available []int) {
+	addAvailable := g.CurrentPhase == Player1Wonder2Phase || g.CurrentPhase == Player2Wonder2Phase
+
+	test(len(g.BoxContent.Wonders), len(g.Player1().Wonders), len(g.Player2().Wonders))
+
+	// aggiunta
+	for _, idx := range selected {
+		g.GetCurrentPlayer().Wonders = append(g.GetCurrentPlayer().Wonders, g.BoxContent.Wonders[idx])
+	}
+	if addAvailable {
+		for _, idx := range available { // qui dovrebbe essercene solo una
+			g.GetOtherPlayer().Wonders = append(g.GetOtherPlayer().Wonders, g.BoxContent.Wonders[idx])
+		}
+	}
+
+	test(len(g.BoxContent.Wonders), len(g.Player1().Wonders), len(g.Player2().Wonders))
+
+	// rimozione
+	for _, idx := range selected {
+		g.BoxContent.Wonders = append(g.BoxContent.Wonders[:idx], g.BoxContent.Wonders[idx+1:]...)
+	}
+	if addAvailable {
+		for _, idx := range available { // qui dovrebbe essercene solo una
+			g.BoxContent.Wonders = append(g.BoxContent.Wonders[:idx], g.BoxContent.Wonders[idx+1:]...)
+		}
+	}
+
+	test(len(g.BoxContent.Wonders), len(g.Player1().Wonders), len(g.Player2().Wonders))
 }

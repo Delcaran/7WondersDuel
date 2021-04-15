@@ -3,7 +3,6 @@ package game
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -578,16 +577,9 @@ func (g *Game) switchPlayer() {
 	}
 }
 
-func test(d, p1, p2 int) {
-	local := fmt.Sprintf("%d %d %d", d, p1, p2)
-	fmt.Println(local)
-}
-
 // AddWonders adds some wonders to players
 func (g *Game) AddWonders(selected []int, available []int) {
 	addAvailable := g.CurrentPhase == Player1Wonder2Phase || g.CurrentPhase == Player2Wonder2Phase
-
-	test(len(g.BoxContent.Wonders), len(g.Player1().Wonders), len(g.Player2().Wonders))
 
 	// aggiunta
 	for _, idx := range selected {
@@ -599,17 +591,21 @@ func (g *Game) AddWonders(selected []int, available []int) {
 		}
 	}
 
-	test(len(g.BoxContent.Wonders), len(g.Player1().Wonders), len(g.Player2().Wonders))
-
 	// rimozione
-	for _, idx := range selected {
-		g.BoxContent.Wonders = append(g.BoxContent.Wonders[:idx], g.BoxContent.Wonders[idx+1:]...)
-	}
-	if addAvailable {
-		for _, idx := range available { // qui dovrebbe essercene solo una
-			g.BoxContent.Wonders = append(g.BoxContent.Wonders[:idx], g.BoxContent.Wonders[idx+1:]...)
+	var remainingWonders []wonder
+	for checkToBeRemoved := range g.BoxContent.Wonders {
+		keep := true
+		for _, toBeRemoved := range selected {
+			keep = keep && toBeRemoved != checkToBeRemoved
+		}
+		if addAvailable {
+			for _, toBeRemoved := range available {
+				keep = keep && toBeRemoved != checkToBeRemoved
+			}
+		}
+		if keep {
+			remainingWonders = append(remainingWonders, g.BoxContent.Wonders[checkToBeRemoved])
 		}
 	}
-
-	test(len(g.BoxContent.Wonders), len(g.Player1().Wonders), len(g.Player2().Wonders))
+	g.BoxContent.Wonders = remainingWonders
 }

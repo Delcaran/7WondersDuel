@@ -1,6 +1,7 @@
 package game
 
-type cost struct {
+// Cost is the resources needed for build
+type Cost struct {
 	Coins   int
 	Wood    int
 	Clay    int
@@ -50,7 +51,8 @@ type forEach struct {
 	Coins    int
 }
 
-type construction struct {
+// Construction is what you gain after built
+type Construction struct {
 	Points       int
 	Turn         bool
 	Coins        int

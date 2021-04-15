@@ -5,22 +5,24 @@ import (
 	"time"
 )
 
-type wonder struct {
+// Wonder is a special type of building
+type Wonder struct {
 	ID           string
 	Name         string
 	Production   Production   // perpetual gains
-	Construction construction // one-time-only gains
-	Cost         cost
+	Construction Construction // one-time-only gains
+	Cost         Cost
 	TokenChoice  tokenChoice
+	Built        bool
 }
 
-func (b *wonder) getProduction() *Production {
+func (b *Wonder) getProduction() *Production {
 	return &b.Production
 }
-func (b *wonder) getConstruction() *construction {
+func (b *Wonder) getConstruction() *Construction {
 	return &b.Construction
 }
-func (b *wonder) getCost() *cost {
+func (b *Wonder) getCost() *Cost {
 	return &b.Cost
 }
 
@@ -34,9 +36,9 @@ type building struct {
 	ID           string
 	Name         string
 	Type         string
-	Cost         cost
+	Cost         Cost
 	Production   Production   // perpetual gains
-	Construction construction // one-time-only gains
+	Construction Construction // one-time-only gains
 	Bonus        bonus
 	Trade        []string
 	Linked       string // sfrutta questa catena
@@ -48,17 +50,33 @@ type building struct {
 func (b *building) getProduction() *Production {
 	return &b.Production
 }
-func (b *building) getConstruction() *construction {
+func (b *building) getConstruction() *Construction {
 	return &b.Construction
 }
-func (b *building) getCost() *cost {
+func (b *building) getCost() *Cost {
 	return &b.Cost
 }
 
-type genericBuilding interface {
+// GenericBuilding is a common interface for wonders and normal buildings
+type GenericBuilding interface {
 	getProduction() *Production
-	getConstruction() *construction
-	getCost() *cost
+	getConstruction() *Construction
+	getCost() *Cost
+}
+
+// GetProduction return production of building or wonder
+func GetProduction(g GenericBuilding) *Production {
+	return g.getProduction()
+}
+
+// GetConstruction return construction of building or wonder
+func GetConstruction(g GenericBuilding) *Construction {
+	return g.getConstruction()
+}
+
+// GetCost return cost of building or wonder
+func GetCost(g GenericBuilding) *Cost {
+	return g.getCost()
 }
 
 type deck struct {

@@ -16,7 +16,7 @@ type tokenChoice struct {
 }
 
 type gameContent struct {
-	Wonders []wonder
+	Wonders []Wonder
 	Decks   []deck
 	Tokens  []token
 	Coins   int
@@ -46,7 +46,7 @@ type Player struct {
 	Coins         int
 	BonusShields  int // in addition of those from buildings
 	MilitaryPower int
-	Wonders       []wonder
+	Wonders       []Wonder
 	Buildings     []*building
 	Links         []string
 	Tokens        []token
@@ -91,7 +91,7 @@ func calculateDynamicProduction(input []*Production, inputIndex int, output []Pr
 func (p *Player) AvailableResources() (Production, []Production) {
 	var fixed Production
 	var toBeAnalized []*Production
-	genericBuildings := []genericBuilding{}
+	genericBuildings := []GenericBuilding{}
 	for _, b := range p.Buildings {
 		genericBuildings = append(genericBuildings, b)
 	}
@@ -117,8 +117,8 @@ func (p *Player) AvailableResources() (Production, []Production) {
 	return fixed, dynamic
 }
 
-func (p *Player) calculatePrices(opponent *Player) cost {
-	var Prices cost
+func (p *Player) calculatePrices(opponent *Player) Cost {
+	var Prices Cost
 	opponentFixedProduction, _ := opponent.AvailableResources() // only raw and manufactured are fixed
 	Prices.Wood = 2 + opponentFixedProduction.Wood
 	Prices.Clay = 2 + opponentFixedProduction.Clay
@@ -161,7 +161,7 @@ func (p *Player) CalculateSellIncome() int {
 
 // CalculateBuyingCost returns how many coins are needed to construct a building
 func (p *Player) CalculateBuyingCost(b *building, opponent *Player) (bool, bool, int) {
-	var MissingResources cost
+	var MissingResources Cost
 	// check links for free building
 	for _, l := range p.Links {
 		if l == b.Linked {
@@ -577,6 +577,21 @@ func (g *Game) switchPlayer() {
 	}
 }
 
+// SetRandomWonders assigns the first wonders in the deck and jumps to ReadyToPlay phase
+func (g *Game) SetRandomWonders() {
+	for len(g.GetCurrentPlayer().Wonders) < 4 {
+		g.GetCurrentPlayer().Wonders = append(g.GetCurrentPlayer().Wonders, g.BoxContent.Wonders[0])
+		g.BoxContent.Wonders = g.BoxContent.Wonders[1:]
+	}
+	for len(g.GetOtherPlayer().Wonders) < 4 {
+		g.GetOtherPlayer().Wonders = append(g.GetOtherPlayer().Wonders, g.BoxContent.Wonders[0])
+		g.BoxContent.Wonders = g.BoxContent.Wonders[1:]
+	}
+	for g.CurrentPhase != ReadyToPlay {
+		g.NextPhase()
+	}
+}
+
 // AddWonders adds some wonders to players
 func (g *Game) AddWonders(selected []int, available []int) {
 	addAvailable := g.CurrentPhase == Player1Wonder2Phase || g.CurrentPhase == Player2Wonder2Phase
@@ -592,7 +607,7 @@ func (g *Game) AddWonders(selected []int, available []int) {
 	}
 
 	// rimozione
-	var remainingWonders []wonder
+	var remainingWonders []Wonder
 	for checkToBeRemoved := range g.BoxContent.Wonders {
 		keep := true
 		for _, toBeRemoved := range selected {

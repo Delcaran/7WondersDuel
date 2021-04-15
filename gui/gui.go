@@ -71,9 +71,9 @@ func fillBoard(game *game.Game, board *tview.Grid) {
 					// default production for this kind of card
 					switch card.Building.Type {
 					case "raw":
-						extendedInfo = getBuildingProduction(card)
+						extendedInfo = getBuildingProduction(card.Building)
 					case "manufactured":
-						extendedInfo = getBuildingProduction(card)
+						extendedInfo = getBuildingProduction(card.Building)
 					case "commercial":
 						extendedInfo = getBuildingTrade(card)
 					case "military":
@@ -93,7 +93,7 @@ func fillBoard(game *game.Game, board *tview.Grid) {
 						extendedInfo = fmt.Sprintf("%s %s", extendedInfo, getBuildingOTOG(card))
 					}
 					// cost
-					extendedInfo = fmt.Sprintf("%s\n%s", extendedInfo, getBuildingCost(card))
+					extendedInfo = fmt.Sprintf("%s\n%s", extendedInfo, getBuildingCost(card.Building))
 					// links
 					if len(card.Building.Linked) > 0 {
 						extendedInfo = fmt.Sprintf("%s\n%s", extendedInfo, card.Building.Linked)
@@ -175,6 +175,19 @@ func displayerPlayerMilitaryPower(player *game.Player, view *tview.Table, beginR
 	return beginRow + 1
 }
 
+func displayerPlayerWonders(player *game.Player, view *tview.Table, beginRow int) int {
+	color := tcell.ColorWhite
+	view = view.SetCell(beginRow, 0, tview.NewTableCell("Wonders").SetTextColor(color).SetAlign(tview.AlignRight))
+	for n, w := range player.Wonders {
+		if w.Built {
+			color = tcell.ColorGreen
+		}
+		view = view.SetCell(beginRow+n, 1, tview.NewTableCell(w.Name).SetTextColor(color).SetAlign(tview.AlignCenter))
+		view = view.SetCell(beginRow+n, 2, tview.NewTableCell(getWonderSummary(&w)).SetTextColor(color).SetAlign(tview.AlignLeft))
+	}
+	return beginRow + len(player.Wonders)
+}
+
 func fillPlayerInfoArea(g *game.Game, player *game.Player, view *tview.Table, frame *tview.Frame) {
 	var textColor string
 	var borderColor tcell.Color
@@ -198,7 +211,7 @@ func fillPlayerInfoArea(g *game.Game, player *game.Player, view *tview.Table, fr
 
 	righe := displayerPlayerPoints(player, view, 0)
 	righe = displayerPlayerMilitaryPower(player, view, righe)
-	// TODO: wonders
+	righe = displayerPlayerWonders(player, view, righe)
 	righe = displayerPlayerResources(player, view, righe)
 
 	// TODO: dynamic production
@@ -237,8 +250,8 @@ func appendBlock(text *string, block string) {
 	}
 }
 
-func getBuildingCost(card *game.Card) string {
-	cost := card.Building.Cost
+func getBuildingCost(b game.GenericBuilding) string {
+	cost := game.GetCost(b)
 	var txtCost string
 	totCost := 0
 	totCost += appendValue(&txtCost, cost.Coins, "yellow")
@@ -253,8 +266,8 @@ func getBuildingCost(card *game.Card) string {
 	return txtCost
 }
 
-func getBuildingProduction(card *game.Card) string {
-	prod := card.Building.Production
+func getBuildingProduction(b game.GenericBuilding) string {
+	prod := game.GetProduction(b)
 	var txtProd string
 	totProd := 0
 	totProd += appendValue(&txtProd, prod.Wood, "brown")
@@ -314,7 +327,7 @@ func getBuildingLinks(card *game.Card) string {
 }
 
 func getBuildingSummary(card *game.Card) string {
-	txtCost := getBuildingCost(card)
+	txtCost := getBuildingCost(card.Building)
 	if len(card.Building.Linked) > 0 {
 		if len(txtCost) > 0 {
 			txtCost = fmt.Sprintf("%s/", txtCost)
@@ -322,7 +335,7 @@ func getBuildingSummary(card *game.Card) string {
 		txtCost = fmt.Sprintf("%s%s", txtCost, card.Building.Linked)
 	}
 
-	txtProd := getBuildingProduction(card)
+	txtProd := getBuildingProduction(card.Building)
 	txtOTOG := getBuildingOTOG(card)
 	txtScience := getBuildingScience(card)
 	txtTrade := getBuildingTrade(card)
@@ -334,6 +347,18 @@ func getBuildingSummary(card *game.Card) string {
 	appendBlock(&text, txtScience)
 	appendBlock(&text, txtTrade)
 	appendBlock(&text, txtLinks)
+
+	return text
+}
+
+func getWonderSummary(wonder *game.Wonder) string {
+	txtCost := getBuildingCost(wonder)
+	txtProd := getBuildingProduction(wonder)
+
+	text := txtCost
+	appendBlock(&text, txtProd)
+
+	// TODO: cose speciali della meraviglia
 
 	return text
 }
@@ -542,17 +567,22 @@ func refresh(g *game.Game, gui *componentsGUI) {
 				form.SetBorder(true).SetTitle("Enter player's names").SetTitleAlign(tview.AlignCenter)
 				gui.app.SetRoot(form, true).SetFocus(form)
 			case game.FirstPlayerSelectionPhase:
-				modal := tview.NewModal().SetText("Who will be the first to play?").AddButtons([]string{g.Player1().Name, g.Player2().Name, "Random"}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-					if buttonLabel == "Random" {
+				modal := tview.NewModal().SetText("Who will be the first to play?").AddButtons([]string{g.Player1().Name, g.Player2().Name, "Random Turn", "Random Turn & Wonders"}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+					switch buttonLabel {
+					case "Random Turn":
 						g.SetRandomPlayerTurn()
-					} else {
-						if buttonLabel == g.Player1().Name {
-							g.SetPlayer1Turn()
-						} else {
-							g.SetPlayer2Turn()
-						}
+						g.NextPhase()
+					case "Random Turn & Wonders":
+						g.SetRandomPlayerTurn()
+						g.SetRandomWonders()
+						// la fase corretta viene settata da g.SetRandomWonders()
+					case g.Player1().Name:
+						g.SetPlayer1Turn()
+						g.NextPhase()
+					case g.Player2().Name:
+						g.SetPlayer2Turn()
+						g.NextPhase()
 					}
-					g.NextPhase()
 					refresh(g, gui)
 				})
 				gui.app.SetRoot(modal, true).SetFocus(modal)
